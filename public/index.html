@@ -6,6 +6,7 @@
 <title>ResumeBuilder — Build Your Resume</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* same as before - no changes needed */
 :root {
   --bg: #f0f4f8;
   --card: #ffffff;
@@ -361,6 +362,8 @@ main {
     <option value="zh">🇨🇳 中文</option>
     <option value="ms">🇲🇾 Melayu</option>
     <option value="ta">🇮🇳 தமிழ்</option>
+    <option value="hi">🇮🇳 हिन्दी</option>
+    <option value="bn">🇧🇩 বাংলা</option>
   </select>
 </div>
 
@@ -428,6 +431,7 @@ const CONTENT = {
     reviewHint: "Check everything carefully before submitting.",
     naBtn: "Not applicable / Skip",
     doneBtn: "Done — next step →",
+    stepOf: (a,b) => `Step ${a} of ${b}`,
     steps: [
       { icon: "🏬", label: "Agency", question: "Which manpower agency is this resume for?", hint: "Type the agency name exactly as given to you.", placeholder: "e.g. Worklink Manpower Pte Ltd" },
       { icon: "👤", label: "Full name", question: "What is your full name?", hint: "Enter your full legal name.", placeholder: "e.g. Ahmad bin Ramli" },
@@ -483,6 +487,7 @@ const CONTENT = {
     reviewHint: "提交前请仔细检查所有信息。",
     naBtn: "不适用 / 跳过",
     doneBtn: "完成 — 下一步 →",
+    stepOf: (a,b) => `第 ${a} 步，共 ${b} 步`,
     steps: [
       { icon: "🏬", label: "中介机构", question: "这份简历是为哪家人力中介准备的？", hint: "请准确输入中介名称。", placeholder: "例如：Worklink Manpower Pte Ltd" },
       { icon: "👤", label: "全名", question: "您的全名是什么？", hint: "请输入您的法定全名。", placeholder: "例如：陈小明" },
@@ -538,6 +543,7 @@ const CONTENT = {
     reviewHint: "Semak semua maklumat dengan teliti sebelum menghantar.",
     naBtn: "Tidak berkenaan / Langkau",
     doneBtn: "Selesai — langkah seterusnya →",
+    stepOf: (a,b) => `Langkah ${a} daripada ${b}`,
     steps: [
       { icon: "🏬", label: "Agensi", question: "Resume ini untuk agensi pekerja mana?", hint: "Taip nama agensi tepat seperti yang diberikan.", placeholder: "cth. Worklink Manpower Pte Ltd" },
       { icon: "👤", label: "Nama penuh", question: "Apakah nama penuh anda?", hint: "Masukkan nama penuh sah anda.", placeholder: "cth. Ahmad bin Ramli" },
@@ -593,6 +599,7 @@ const CONTENT = {
     reviewHint: "சமர்ப்பிக்கும் முன் அனைத்தையும் கவனமாக சரிபார்க்கவும்.",
     naBtn: "பொருந்தாது / தவிர்",
     doneBtn: "முடிந்தது — அடுத்த படி →",
+    stepOf: (a,b) => `படி ${a} / ${b}`,
     steps: [
       { icon: "🏬", label: "முகமை", question: "இந்த ரெஸ்யூம் எந்த மனிதவள முகமைக்கானது?", hint: "முகமையின் பெயரை சரியாக உள்ளிடவும்.", placeholder: "எ.கா. வொர்க்லிங்க் மன்பவர் பி.டி. லிட்" },
       { icon: "👤", label: "முழு பெயர்", question: "உங்கள் முழு பெயர் என்ன?", hint: "உங்கள் முழு சட்டப்பூர்வ பெயரை உள்ளிடவும்.", placeholder: "எ.கா. அஹ்மத் பின் ரம்லி" },
@@ -637,6 +644,118 @@ const CONTENT = {
     },
     successTitle: (name) => `நன்றி, ${name}! 🎉`,
     successMsg: (agency) => `உங்கள் ரெஸ்யூம் ${agency}-க்கு வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது. அவர்கள் உங்கள் விவரங்களை மதிப்பாய்வு செய்து பொருத்தமான பதவி இருந்தால் உங்களை தொடர்புகொள்வார்கள்.\n\nவாழ்த்துக்கள்! 🙏`,
+  },
+  hi: {
+    back: "← वापस",
+    next: "जारी रखें →",
+    submit: "रेज़्यूमे जमा करें ✓",
+    submitting: "आपका रेज़्यूमे जमा किया जा रहा है...",
+    editHint: "संपादित करने के लिए किसी भी फ़ील्ड पर टैप करें",
+    reviewTitle: "अपना रेज़्यूमे जांचें",
+    reviewHint: "जमा करने से पहले सब कुछ ध्यान से जांचें।",
+    naBtn: "लागू नहीं / छोड़ें",
+    doneBtn: "पूर्ण — अगला चरण →",
+    stepOf: (a,b) => `चरण ${a} / ${b}`,
+    steps: [
+      { icon: "🏬", label: "एजेंसी", question: "यह रेज़्यूमे किस मैनपॉवर एजेंसी के लिए है?", hint: "एजेंसी का नाम बिल्कुल वैसा ही लिखें जैसा दिया गया है।", placeholder: "उदा. वर्कलिंक मैनपॉवर पीटीई लिमिटेड" },
+      { icon: "👤", label: "पूरा नाम", question: "आपका पूरा नाम क्या है?", hint: "अपना पूरा कानूनी नाम दर्ज करें।", placeholder: "उदा. अहमद बिन रमली" },
+      { icon: "🎂", label: "जन्म तिथि", question: "आपकी जन्म तिथि क्या है?", hint: "उदाहरण: 15 जनवरी 1990 या 15/01/1990", placeholder: "उदा. 15 जनवरी 1990" },
+      { icon: "🌏", label: "राष्ट्रीयता", question: "आपकी राष्ट्रीयता क्या है?", hint: "उदाहरण: मलेशियाई, भारतीय, बांग्लादेशी, फिलिपिनो", placeholder: "उदा. मलेशियाई" },
+      { icon: "📍", label: "देश", question: "आप वर्तमान में किस देश में रह रहे हैं?", hint: "", placeholder: "उदा. मलेशिया" },
+      { icon: "🏙", label: "शहर", question: "आप किस शहर या कस्बे में हैं?", hint: "", placeholder: "उदा. कुआलालंपुर" },
+      { icon: "📞", label: "फ़ोन", question: "आपका फ़ोन नंबर क्या है?", hint: "अपना देश कोड शामिल करें। उदाहरण: +60 12-345 6789", placeholder: "उदा. +60 12-345 6789" },
+      { icon: "📧", label: "ईमेल", question: "आपका ईमेल पता क्या है?", hint: "उदाहरण: ahmad@gmail.com", placeholder: "उदा. ahmad@gmail.com" },
+      { icon: "💼", label: "कार्य का प्रकार", question: "आप सिंगापुर में किस प्रकार का काम ढूंढ रहे हैं?", hint: "सभी लागू विकल्प चुनें।", options: ["निर्माण","सफाई","डिलीवरी / लॉजिस्टिक्स","सुरक्षा","गोदाम","खाद्य एवं पेय / रसोई","विनिर्माण","अन्य"] },
+      { icon: "🕐", label: "कार्य व्यवस्था", question: "आप किस प्रकार की कार्य व्यवस्था के लिए खुले हैं?", hint: "", options: ["पूर्णकालिक","अंशकालिक","शिफ्ट कार्य"] },
+      { icon: "📅", label: "उपलब्धता", question: "आप सिंगापुर में कब काम शुरू कर सकते हैं?", hint: "", options: ["तुरंत","1 सप्ताह के भीतर","1 महीने के भीतर"] },
+      { icon: "💰", label: "अपेक्षित वेतन (SGD)", question: "सिंगापुर में आपका अपेक्षित मासिक वेतन क्या है?", hint: "सिंगापुर डॉलर में। यदि लचीला है तो खाली छोड़ दें।", placeholder: "उदा. 1800" },
+      { icon: "📊", label: "अनुभव", question: "आपके पास कितने वर्षों का अनुभव है?", hint: "इस प्रकार के कार्य में।", options: ["कोई अनुभव नहीं","< 1 वर्ष","1–3 वर्ष","3–5 वर्ष","5–10 वर्ष","10+ वर्ष"] },
+      { icon: "🏢", label: "नौकरी 1 शीर्षक", question: "आपका सबसे हालिया नौकरी शीर्षक क्या था?", hint: "उदाहरण: निर्माण श्रमिक, सुरक्षा गार्ड, सफाईकर्मी", placeholder: "उदा. निर्माण श्रमिक" },
+      { icon: "🏢", label: "नौकरी 1 कंपनी", question: "आपने किस कंपनी में काम किया?", hint: "", placeholder: "उदा. लिम कंस्ट्रक्शन पीटीई लिमिटेड" },
+      { icon: "🏢", label: "नौकरी 1 तिथियाँ", question: "आपने वहां कब काम किया?", hint: "उदाहरण: जनवरी 2022 – मार्च 2024", placeholder: "उदा. जनवरी 2022 – मार्च 2024" },
+      { icon: "🏢", label: "नौकरी 2 शीर्षक", question: "आपका दूसरा सबसे हालिया नौकरी शीर्षक क्या था?", hint: "यदि आपके पास केवल एक नौकरी है तो खाली छोड़ दें।", placeholder: "उदा. गोदाम श्रमिक" },
+      { icon: "🏢", label: "नौकरी 2 कंपनी", question: "वह कौन सी कंपनी थी?", hint: "", placeholder: "उदा. एबीसी लॉजिस्टिक्स" },
+      { icon: "🏢", label: "नौकरी 2 तिथियाँ", question: "आपने वहां कब काम किया?", hint: "उदाहरण: मार्च 2020 – दिसंबर 2021", placeholder: "उदा. मार्च 2020 – दिसंबर 2021" },
+      { icon: "🏢", label: "नौकरी 3 शीर्षक", question: "आपका तीसरा सबसे हालिया नौकरी शीर्षक क्या था?", hint: "यदि आपके पास केवल दो नौकरियाँ हैं तो खाली छोड़ दें।", placeholder: "उदा. सफाईकर्मी" },
+      { icon: "🏢", label: "नौकरी 3 कंपनी", question: "वह कौन सी कंपनी थी?", hint: "", placeholder: "उदा. एक्सवाईजेड सर्विसेज" },
+      { icon: "🏢", label: "नौकरी 3 तिथियाँ", question: "आपने वहां कब काम किया?", hint: "उदाहरण: जनवरी 2018 – फरवरी 2020", placeholder: "उदा. जनवरी 2018 – फरवरी 2020" },
+      { icon: "🔧", label: "कौशल", question: "आप कौन से कौशल और उपकरण जानते हैं?", hint: "उदाहरण: फोर्कलिफ्ट, मचान, वेल्डिंग, सफाई उपकरण, ड्राइविंग", placeholder: "उदा. फोर्कलिफ्ट, मचान, वेल्डिंग" },
+      { icon: "📜", label: "प्रमाणपत्र", question: "क्या आपके पास कोई प्रमाणपत्र या लाइसेंस है?", hint: "उदाहरण: फोर्कलिफ्ट लाइसेंस, बीसीएसएस, खाद्य स्वच्छता प्रमाणपत्र, सुरक्षा लाइसेंस", placeholder: "उदा. फोर्कलिफ्ट लाइसेंस, बीसीएसएस" },
+      { icon: "🎓", label: "शिक्षा", question: "आपकी उच्चतम शैक्षिक योग्यता क्या है?", hint: "", options: ["कोई औपचारिक शिक्षा नहीं","प्राथमिक विद्यालय","माध्यमिक विद्यालय","व्यावसायिक / आईटीई","डिप्लोमा","डिग्री या उच्चतर"] },
+      { icon: "🗣", label: "भाषाएँ", question: "आप कौन सी भाषाएँ बोल या पढ़ सकते हैं?", hint: "सभी लागू विकल्प चुनें।", options: ["अंग्रेज़ी","मंदारिन","मलय","तमिल","हिंदी","बंगाली"] },
+    ],
+    reviewSections: {
+      personal: "व्यक्तिगत विवरण",
+      job: "नौकरी की प्राथमिकताएँ",
+      experience: "कार्य अनुभव",
+      skills: "कौशल और शिक्षा",
+    },
+    errors: {
+      required: "यह फ़ील्ड आवश्यक है।",
+      dob: "कृपया एक मान्य तारीख दर्ज करें। उदाहरण: 15 जनवरी 1990",
+      phone: "कृपया देश कोड के साथ एक मान्य फ़ोन नंबर दर्ज करें।",
+      email: "कृपया एक मान्य ईमेल पता दर्ज करें।",
+      salary: "कृपया एक संख्या दर्ज करें, जैसे 1800",
+      daterange: "कृपया तारीखें दर्ज करें, जैसे जनवरी 2022 – मार्च 2024",
+    },
+    successTitle: (name) => `धन्यवाद, ${name}! 🎉`,
+    successMsg: (agency) => `आपका रेज़्यूमे सफलतापूर्वक ${agency} को जमा कर दिया गया है। वे आपके विवरण की समीक्षा करेंगे और यदि कोई उपयुक्त पद होगा तो आपसे संपर्क करेंगे।\n\nशुभकामनाएँ! 🙏`,
+  },
+  bn: {
+    back: "← ফিরে যান",
+    next: "চালিয়ে যান →",
+    submit: "রিজিউম জমা দিন ✓",
+    submitting: "আপনার রিজিউম জমা দেওয়া হচ্ছে...",
+    editHint: "সম্পাদনা করতে যেকোনো ক্ষেত্রে ট্যাপ করুন",
+    reviewTitle: "আপনার রিজিউম পর্যালোচনা করুন",
+    reviewHint: "জমা দেওয়ার আগে সব কিছু সাবধানে পরীক্ষা করুন।",
+    naBtn: "প্রযোজ্য নয় / এড়িয়ে যান",
+    doneBtn: "সম্পন্ন — পরবর্তী ধাপ →",
+    stepOf: (a,b) => `ধাপ ${a} / ${b}`,
+    steps: [
+      { icon: "🏬", label: "এজেন্সি", question: "এই রিজিউমটি কোন ম্যানপাওয়ার এজেন্সির জন্য?", hint: "এজেন্সির নাম ঠিক যেমনটি দেওয়া হয়েছে লিখুন।", placeholder: "যেমন: ওয়ার্কলিঙ্ক ম্যানপাওয়ার পিটিই লিমিটেড" },
+      { icon: "👤", label: "পুরো নাম", question: "আপনার পুরো নাম কী?", hint: "আপনার পুরো আইনি নাম লিখুন।", placeholder: "যেমন: আহমদ বিন রামলি" },
+      { icon: "🎂", label: "জন্ম তারিখ", question: "আপনার জন্ম তারিখ কী?", hint: "উদাহরণ: ১৫ জানুয়ারি ১৯৯০ অথবা ১৫/০১/১৯৯০", placeholder: "যেমন: ১৫ জানুয়ারি ১৯৯০" },
+      { icon: "🌏", label: "জাতীয়তা", question: "আপনার জাতীয়তা কী?", hint: "উদাহরণ: মালয়েশিয়ান, ভারতীয়, বাংলাদেশি, ফিলিপিনো", placeholder: "যেমন: মালয়েশিয়ান" },
+      { icon: "📍", label: "দেশ", question: "আপনি বর্তমানে কোন দেশে থাকেন?", hint: "", placeholder: "যেমন: মালয়েশিয়া" },
+      { icon: "🏙", label: "শহর", question: "আপনি কোন শহর বা এলাকায় আছেন?", hint: "", placeholder: "যেমন: কুয়ালালামপুর" },
+      { icon: "📞", label: "ফোন", question: "আপনার ফোন নম্বর কী?", hint: "আপনার দেশের কোড অন্তর্ভুক্ত করুন। উদাহরণ: +60 12-345 6789", placeholder: "যেমন: +60 12-345 6789" },
+      { icon: "📧", label: "ইমেইল", question: "আপনার ইমেইল ঠিকানা কী?", hint: "উদাহরণ: ahmad@gmail.com", placeholder: "যেমন: ahmad@gmail.com" },
+      { icon: "💼", label: "কাজের ধরন", question: "সিঙ্গাপুরে আপনি কী ধরনের কাজ খুঁজছেন?", hint: "প্রযোজ্য সবগুলি নির্বাচন করুন।", options: ["নির্মাণ","পরিষ্কার","ডেলিভারি / লজিস্টিকস","নিরাপত্তা","গুদাম","খাদ্য ও পানীয় / রান্নাঘর","উৎপাদন","অন্যান্য"] },
+      { icon: "🕐", label: "কাজের ব্যবস্থা", question: "আপনি কী ধরনের কাজের ব্যবস্থায় আগ্রহী?", hint: "", options: ["পূর্ণকালীন","আংশিককালীন","শিফট কাজ"] },
+      { icon: "📅", label: "প্রাপ্যতা", question: "আপনি সিঙ্গাপুরে কখন কাজ শুরু করতে পারবেন?", hint: "", options: ["অবিলম্বে","১ সপ্তাহের মধ্যে","১ মাসের মধ্যে"] },
+      { icon: "💰", label: "প্রত্যাশিত বেতন (SGD)", question: "সিঙ্গাপুরে আপনার প্রত্যাশিত মাসিক বেতন কত?", hint: "সিঙ্গাপুর ডলারে। নমনীয় হলে ফাঁকা রাখুন।", placeholder: "যেমন: ১৮০০" },
+      { icon: "📊", label: "অভিজ্ঞতা", question: "আপনার কত বছরের অভিজ্ঞতা আছে?", hint: "এই ধরণের কাজে।", options: ["কোনো অভিজ্ঞতা নেই","< ১ বছর","১–৩ বছর","৩–৫ বছর","৫–১০ বছর","১০+ বছর"] },
+      { icon: "🏢", label: "চাকরি ১ পদবি", question: "আপনার সবশেষ চাকরির পদবি কী ছিল?", hint: "উদাহরণ: নির্মাণ শ্রমিক, নিরাপত্তা প্রহরী, পরিচ্ছন্নতাকর্মী", placeholder: "যেমন: নির্মাণ শ্রমিক" },
+      { icon: "🏢", label: "চাকরি ১ কোম্পানি", question: "আপনি কোন কোম্পানিতে কাজ করেছেন?", hint: "", placeholder: "যেমন: লিম কনস্ট্রাকশন পিটিই লিমিটেড" },
+      { icon: "🏢", label: "চাকরি ১ সময়কাল", question: "আপনি সেখানে কখন কাজ করেছেন?", hint: "উদাহরণ: জানুয়ারি ২০২২ – মার্চ ২০২৪", placeholder: "যেমন: জানুয়ারি ২০২২ – মার্চ ২০২৪" },
+      { icon: "🏢", label: "চাকরি ২ পদবি", question: "আপনার দ্বিতীয় সর্বশেষ চাকরির পদবি কী ছিল?", hint: "যদি আপনার শুধু একটি চাকরি থাকে তাহলে ফাঁকা রাখুন।", placeholder: "যেমন: গুদাম শ্রমিক" },
+      { icon: "🏢", label: "চাকরি ২ কোম্পানি", question: "সেটি কোন কোম্পানি ছিল?", hint: "", placeholder: "যেমন: এবিসি লজিস্টিকস" },
+      { icon: "🏢", label: "চাকরি ২ সময়কাল", question: "আপনি সেখানে কখন কাজ করেছেন?", hint: "উদাহরণ: মার্চ ২০২০ – ডিসেম্বর ২০২১", placeholder: "যেমন: মার্চ ২০২০ – ডিসেম্বর ২০২১" },
+      { icon: "🏢", label: "চাকরি ৩ পদবি", question: "আপনার তৃতীয় সর্বশেষ চাকরির পদবি কী ছিল?", hint: "যদি আপনার শুধু দুটি চাকরি থাকে তাহলে ফাঁকা রাখুন।", placeholder: "যেমন: পরিচ্ছন্নতাকর্মী" },
+      { icon: "🏢", label: "চাকরি ৩ কোম্পানি", question: "সেটি কোন কোম্পানি ছিল?", hint: "", placeholder: "যেমন: এক্সওয়াইজেড সার্ভিসেস" },
+      { icon: "🏢", label: "চাকরি ৩ সময়কাল", question: "আপনি সেখানে কখন কাজ করেছেন?", hint: "উদাহরণ: জানুয়ারি ২০১৮ – ফেব্রুয়ারি ২০২০", placeholder: "যেমন: জানুয়ারি ২০১৮ – ফেব্রুয়ারি ২০২০" },
+      { icon: "🔧", label: "দক্ষতা", question: "আপনি কী কী দক্ষতা এবং সরঞ্জাম জানেন?", hint: "উদাহরণ: ফর্কলিফ্ট, স্ক্যাফোল্ডিং, ওয়েল্ডিং, পরিষ্কারের সরঞ্জাম, ড্রাইভিং", placeholder: "যেমন: ফর্কলিফ্ট, স্ক্যাফোল্ডিং, ওয়েল্ডিং" },
+      { icon: "📜", label: "সার্টিফিকেশন", question: "আপনার কি কোনো সার্টিফিকেট বা লাইসেন্স আছে?", hint: "উদাহরণ: ফর্কলিফ্ট লাইসেন্স, বিসিএসএস, খাদ্য স্বাস্থ্যবিধি সার্টিফিকেট, নিরাপত্তা লাইসেন্স", placeholder: "যেমন: ফর্কলিফ্ট লাইসেন্স, বিসিএসএস" },
+      { icon: "🎓", label: "শিক্ষা", question: "আপনার সর্বোচ্চ শিক্ষাগত যোগ্যতা কী?", hint: "", options: ["কোনো আনুষ্ঠানিক শিক্ষা নেই","প্রাথমিক বিদ্যালয়","মাধ্যমিক বিদ্যালয়","বৃত্তিমূলক / আইটিই","ডিপ্লোমা","ডিগ্রি বা উচ্চতর"] },
+      { icon: "🗣", label: "ভাষা", question: "আপনি কোন ভাষায় কথা বলতে বা পড়তে পারেন?", hint: "প্রযোজ্য সবগুলি নির্বাচন করুন।", options: ["ইংরেজি","ম্যান্ডারিন","মালয়","তামিল","হিন্দি","বাংলা"] },
+    ],
+    reviewSections: {
+      personal: "ব্যক্তিগত বিবরণ",
+      job: "চাকরির পছন্দ",
+      experience: "কর্ম অভিজ্ঞতা",
+      skills: "দক্ষতা ও শিক্ষা",
+    },
+    errors: {
+      required: "এই ক্ষেত্রটি প্রয়োজন।",
+      dob: "একটি বৈধ তারিখ লিখুন। উদাহরণ: ১৫ জানুয়ারি ১৯৯০",
+      phone: "দেশের কোডসহ একটি বৈধ ফোন নম্বর লিখুন।",
+      email: "একটি বৈধ ইমেইল ঠিকানা লিখুন।",
+      salary: "একটি সংখ্যা লিখুন, যেমন ১৮০০",
+      daterange: "তারিখ লিখুন, যেমন জানুয়ারি ২০২২ – মার্চ ২০২৪",
+    },
+    successTitle: (name) => `ধন্যবাদ, ${name}! 🎉`,
+    successMsg: (agency) => `আপনার রিজিউম সফলভাবে ${agency}-তে জমা দেওয়া হয়েছে। তারা আপনার তথ্য পর্যালোচনা করবে এবং উপযুক্ত পদ থাকলে আপনার সাথে যোগাযোগ করবে।\n\nশুভকামনা! 🙏`,
   },
 };
 
@@ -704,7 +823,7 @@ function render() {
   const pct = Math.round((currentStep / (totalSteps + 1)) * 100);
   document.getElementById("progressFill").style.width = pct + "%";
   document.getElementById("stepPct").textContent = pct + "%";
-  document.getElementById("stepLabel").textContent = isReview ? t("reviewTitle") : `${t("stepOf", currentStep + 1, totalSteps)}`;
+  document.getElementById("stepLabel").textContent = isReview ? t("reviewTitle") : t("stepOf", currentStep + 1, totalSteps);
   document.getElementById("progressWrap").style.display = isReview ? "none" : "";
   
   if (isReview) {
@@ -993,12 +1112,6 @@ function showSuccess() {
 function escHtml(str) {
   return String(str ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
-
-// Add missing t function for stepOf
-CONTENT.en.stepOf = (a,b) => `Step ${a} of ${b}`;
-CONTENT.zh.stepOf = (a,b) => `第 ${a} 步，共 ${b} 步`;
-CONTENT.ms.stepOf = (a,b) => `Langkah ${a} daripada ${b}`;
-CONTENT.ta.stepOf = (a,b) => `படி ${a} / ${b}`;
 
 // ============================================================
 // INIT
