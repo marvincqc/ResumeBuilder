@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — ResumeBot</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f1419;
+    --muted: #556170;
+    --accent: #1a6b4a;
+    --accent-light: #e8f5ef;
+    --line: #dde3e8;
+    --bg: #fafaf8;
+    --white: #ffffff;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--white);
+    border-bottom: 1px solid var(--line);
+    padding: 0 40px;
+  }
+  .header-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-mark {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .logo-text { font-weight: 500; font-size: 17px; letter-spacing: -0.3px; }
+  .logo-text span { color: var(--accent); }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--white);
+    border-bottom: 1px solid var(--line);
+    padding: 60px 40px 48px;
+  }
+  .hero-inner { max-width: 760px; margin: 0 auto; }
+  .eyebrow {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+  }
+  .hero-meta {
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ── Content ── */
+  main { padding: 64px 40px 100px; }
+  .content { max-width: 760px; margin: 0 auto; }
+
+  section { margin-bottom: 52px; }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: -0.2px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .sec-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  p { color: #2d3748; margin-bottom: 14px; font-size: 15.5px; }
+  p:last-child { margin-bottom: 0; }
+
+  ul {
+    margin: 12px 0 14px 0;
+    padding-left: 0;
+    list-style: none;
+  }
+  ul li {
+    padding: 6px 0 6px 22px;
+    position: relative;
+    color: #2d3748;
+    font-size: 15.5px;
+    border-bottom: 1px solid #f0f0ee;
+  }
+  ul li:last-child { border-bottom: none; }
+  ul li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 16px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ── Info box ── */
+  .info-box {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 15px;
+    color: #1a4a35;
+  }
+
+  /* ── Contact card ── */
+  .contact-card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-top: 12px;
+  }
+  .contact-card p { margin: 4px 0; font-size: 15px; }
+  .contact-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 500; margin-bottom: 10px; }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.5);
+    padding: 32px 40px;
+    text-align: center;
+    font-size: 13px;
+  }
+  footer strong { color: rgba(255,255,255,0.8); }
+
+  @media (max-width: 600px) {
+    header, .hero, main, footer { padding-left: 20px; padding-right: 20px; }
+    .hero { padding-top: 40px; padding-bottom: 32px; }
+    main { padding-top: 40px; padding-bottom: 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-mark">📋</div>
+    <div class="logo-text">Resume<span>Bot</span></div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Legal</div>
+    <h1>Privacy Policy</h1>
+    <div class="hero-meta">
+      <span>📅 Effective: January 1, 2025</span>
+      <span>🔄 Last updated: March 2026</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="content">
+
+    <div class="info-box">
+      ResumeBot is a Facebook Messenger chatbot that helps foreign workers create resumes for job applications in Singapore. This policy explains how we handle your information.
+    </div>
+
+    <section>
+      <h2><span class="sec-num">1</span> Who We Are</h2>
+      <p>ResumeBot is operated as a resume-building service connecting foreign workers with manpower agencies in Singapore. By using ResumeBot on Facebook Messenger, you agree to this Privacy Policy.</p>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">2</span> Information We Collect</h2>
+      <p>When you use ResumeBot, we collect the information you provide during the conversation, which may include:</p>
+      <ul>
+        <li>Full name and date of birth</li>
+        <li>Nationality and current location (country and city)</li>
+        <li>Phone number and email address</li>
+        <li>Work experience, job titles, and company names</li>
+        <li>Skills, certifications, and education level</li>
+        <li>Preferred job type, work arrangement, and expected salary</li>
+        <li>Languages spoken</li>
+        <li>Your Facebook Messenger user ID (PSID)</li>
+        <li>The name of the manpower agency your resume is submitted to</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">3</span> How We Use Your Information</h2>
+      <p>Your information is used solely for the following purposes:</p>
+      <ul>
+        <li>To generate your resume as a PDF document</li>
+        <li>To submit your resume to the manpower agency you specify</li>
+        <li>To store your resume securely so it can be forwarded to the relevant agency</li>
+      </ul>
+      <p>We do not use your information for marketing, advertising, or any purpose beyond resume submission.</p>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">4</span> How We Store Your Information</h2>
+      <p>Your resume data and generated PDF are stored securely using Supabase, a cloud database service. Access is restricted to authorised personnel only. Your data is not stored on Facebook's servers beyond what is required for the Messenger conversation.</p>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">5</span> Who We Share Your Information With</h2>
+      <p>Your information is shared only with:</p>
+      <ul>
+        <li><strong>The manpower agency</strong> you specify at the start of the conversation — your resume is submitted to them for employment matching purposes</li>
+        <li><strong>ResumeBot's operator</strong> — who reviews submissions and forwards resumes to agencies</li>
+      </ul>
+      <p>We do not sell, rent, or share your information with any third parties for commercial purposes.</p>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">6</span> Data Retention</h2>
+      <p>Your resume and personal information are retained for as long as necessary to facilitate your job application. You may request deletion of your data at any time by contacting us (see Section 9 below).</p>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">7</span> Your Rights</h2>
+      <p>You have the right to:</p>
+      <ul>
+        <li>Access the personal information we hold about you</li>
+        <li>Request correction of any inaccurate information</li>
+        <li>Request deletion of your data</li>
+        <li>Withdraw consent at any time by stopping use of the service</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">8</span> Facebook Platform</h2>
+      <p>ResumeBot operates on Facebook Messenger. Your use of Messenger is also subject to <a href="https://www.facebook.com/policy" style="color:var(--accent);">Meta's Privacy Policy</a>. We only access the information you share with us directly through the bot conversation.</p>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">9</span> Contact Us</h2>
+      <p>If you have any questions about this Privacy Policy or wish to exercise your data rights, please contact us:</p>
+      <div class="contact-card">
+        <div class="label">ResumeBot Operator</div>
+        <p>📍 Singapore</p>
+        <p>💬 Message us via the ResumeBot Facebook Page</p>
+      </div>
+    </section>
+
+    <section>
+      <h2><span class="sec-num">10</span> Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. Any changes will be reflected on this page with an updated date. Continued use of ResumeBot after changes constitutes acceptance of the updated policy.</p>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <strong>ResumeBot</strong> &nbsp;·&nbsp; Privacy Policy &nbsp;·&nbsp; © 2026 &nbsp;·&nbsp; Singapore
+</footer>
+
+</body>
+</html>
