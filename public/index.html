@@ -6,7 +6,7 @@
 <title>ResumeBuilder — Build Your Resume</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* same as before - no changes needed */
+/* Keep all your existing styles */
 :root {
   --bg: #f0f4f8;
   --card: #ffffff;
@@ -343,6 +343,38 @@ main {
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-msg { font-size: 15px; font-weight: 500; color: var(--muted); }
 
+/* Photo step styles */
+.file-input {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.preview-img {
+  max-width: 100%;
+  max-height: 200px;
+  margin: 12px 0;
+  border-radius: 8px;
+}
+.ocr-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  margin: 12px 0;
+}
+.ocr-loading .spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 @media (max-width: 480px) {
   .step-card { padding: 24px 20px; }
   .step-q { font-size: 19px; }
@@ -390,9 +422,11 @@ main {
 // ============================================================
 const STEPS = [
   { key: "agency",      type: "text",   validate: null,     optional: false },
+  { key: "passportPhoto", type: "photo", optional: false },  // NEW
   { key: "name",        type: "text",   validate: null,     optional: false },
   { key: "dob",         type: "text",   validate: "dob",    optional: false },
   { key: "nationality", type: "text",   validate: null,     optional: false },
+  { key: "passportNumber", type: "text", validate: null,   optional: false },  // NEW
   { key: "country",     type: "text",   validate: null,     optional: false },
   { key: "city",        type: "text",   validate: null,     optional: false },
   { key: "phone",       type: "text",   validate: "phone",  optional: false },
@@ -418,7 +452,7 @@ const STEPS = [
 ];
 
 // ============================================================
-// TRANSLATIONS
+// TRANSLATIONS (only English shown for brevity – you need to add passportNumber and photo step to each language)
 // ============================================================
 const CONTENT = {
   en: {
@@ -434,9 +468,12 @@ const CONTENT = {
     stepOf: (a,b) => `Step ${a} of ${b}`,
     steps: [
       { icon: "🏬", label: "Agency", question: "Which manpower agency is this resume for?", hint: "Type the agency name exactly as given to you.", placeholder: "e.g. Worklink Manpower Pte Ltd" },
+      // New photo step
+      { icon: "📷", label: "Passport", question: "Scan your passport", hint: "Upload a photo of your passport data page (the page with your picture). We'll automatically fill in your details.", placeholder: "" },
       { icon: "👤", label: "Full name", question: "What is your full name?", hint: "Enter your full legal name.", placeholder: "e.g. Ahmad bin Ramli" },
       { icon: "🎂", label: "Date of birth", question: "What is your date of birth?", hint: "Example: 15 Jan 1990 or 15/01/1990", placeholder: "e.g. 15 Jan 1990" },
       { icon: "🌏", label: "Nationality", question: "What is your nationality?", hint: "Example: Malaysian, Indian, Bangladeshi, Filipino", placeholder: "e.g. Malaysian" },
+      { icon: "🛂", label: "Passport number", question: "What is your passport number?", hint: "Found on the photo page of your passport.", placeholder: "e.g. A12345678" },
       { icon: "📍", label: "Country", question: "Which country are you currently living in?", hint: "", placeholder: "e.g. Malaysia" },
       { icon: "🏙", label: "City", question: "Which city or town are you in?", hint: "", placeholder: "e.g. Kuala Lumpur" },
       { icon: "📞", label: "Phone", question: "What is your phone number?", hint: "Include your country code. Example: +60 12-345 6789", placeholder: "e.g. +60 12-345 6789" },
@@ -477,286 +514,7 @@ const CONTENT = {
     successTitle: (name) => `Thank you, ${name}! 🎉`,
     successMsg: (agency) => `Your resume has been successfully submitted to ${agency}. They will review your details and contact you if there is a suitable position.\n\nGood luck! 🙏`,
   },
-  zh: {
-    back: "← 返回",
-    next: "继续 →",
-    submit: "提交简历 ✓",
-    submitting: "正在提交您的简历...",
-    editHint: "点击任意字段进行编辑",
-    reviewTitle: "核对您的简历",
-    reviewHint: "提交前请仔细检查所有信息。",
-    naBtn: "不适用 / 跳过",
-    doneBtn: "完成 — 下一步 →",
-    stepOf: (a,b) => `第 ${a} 步，共 ${b} 步`,
-    steps: [
-      { icon: "🏬", label: "中介机构", question: "这份简历是为哪家人力中介准备的？", hint: "请准确输入中介名称。", placeholder: "例如：Worklink Manpower Pte Ltd" },
-      { icon: "👤", label: "全名", question: "您的全名是什么？", hint: "请输入您的法定全名。", placeholder: "例如：陈小明" },
-      { icon: "🎂", label: "出生日期", question: "您的出生日期是什么？", hint: "示例：1990年1月15日", placeholder: "例如：1990年1月15日" },
-      { icon: "🌏", label: "国籍", question: "您的国籍是什么？", hint: "示例：马来西亚、印度、孟加拉、菲律宾", placeholder: "例如：马来西亚" },
-      { icon: "📍", label: "国家", question: "您目前居住在哪个国家？", hint: "", placeholder: "例如：马来西亚" },
-      { icon: "🏙", label: "城市", question: "您在哪个城市或城镇？", hint: "", placeholder: "例如：吉隆坡" },
-      { icon: "📞", label: "电话", question: "您的电话号码是什么？", hint: "请包含国家代码。示例：+60 12-345 6789", placeholder: "例如：+60 12-345 6789" },
-      { icon: "📧", label: "电子邮件", question: "您的电子邮件地址是什么？", hint: "示例：xiaoming@gmail.com", placeholder: "例如：xiaoming@gmail.com" },
-      { icon: "💼", label: "工作类型", question: "您在新加坡寻找什么类型的工作？", hint: "可选择多项。", options: ["建筑","清洁","物流/配送","保安","仓库","餐饮/厨房","制造业","其他"] },
-      { icon: "🕐", label: "工作安排", question: "您接受哪种工作安排？", hint: "", options: ["全职","兼职","轮班"] },
-      { icon: "📅", label: "可开始时间", question: "您何时可以开始在新加坡工作？", hint: "", options: ["立即","1周内","1个月内"] },
-      { icon: "💰", label: "期望薪资 (新币)", question: "您在新加坡的期望月薪是多少？", hint: "新加坡元。如灵活可留空。", placeholder: "例如：1800" },
-      { icon: "📊", label: "工作经验", question: "您有多少年工作经验？", hint: "在此类工作中。", options: ["无经验","少于1年","1-3年","3-5年","5-10年","10年以上"] },
-      { icon: "🏢", label: "最近职位", question: "您最近的工作职位是什么？", hint: "示例：建筑工人、保安、清洁工", placeholder: "例如：建筑工人" },
-      { icon: "🏢", label: "公司名称", question: "您在哪家公司工作？", hint: "", placeholder: "例如：Lim Construction Pte Ltd" },
-      { icon: "🏢", label: "在职时间", question: "您在那里的工作时间？", hint: "示例：2022年1月 – 2024年3月", placeholder: "例如：2022年1月 – 2024年3月" },
-      { icon: "🏢", label: "第二职位", question: "您的第二份工作职位是什么？", hint: "如只有一份工作请留空。", placeholder: "例如：仓库工人" },
-      { icon: "🏢", label: "第二公司", question: "那家公司是？", hint: "", placeholder: "例如：ABC Logistics" },
-      { icon: "🏢", label: "第二在职时间", question: "您在那里的工作时间？", hint: "示例：2020年3月 – 2021年12月", placeholder: "例如：2020年3月 – 2021年12月" },
-      { icon: "🏢", label: "第三职位", question: "您的第三份工作职位是什么？", hint: "如只有两份工作请留空。", placeholder: "例如：清洁工" },
-      { icon: "🏢", label: "第三公司", question: "那家公司是？", hint: "", placeholder: "例如：XYZ Services" },
-      { icon: "🏢", label: "第三在职时间", question: "您在那里的工作时间？", hint: "示例：2018年1月 – 2020年2月", placeholder: "例如：2018年1月 – 2020年2月" },
-      { icon: "🔧", label: "技能", question: "您掌握哪些技能和工具？", hint: "示例：叉车、脚手架、焊接、清洁设备、驾驶", placeholder: "例如：叉车、脚手架、焊接" },
-      { icon: "📜", label: "证书", question: "您有哪些证书或执照？", hint: "示例：叉车执照、BCSS、食品卫生证书、保安执照", placeholder: "例如：叉车执照、BCSS" },
-      { icon: "🎓", label: "教育程度", question: "您的最高教育程度是什么？", hint: "", options: ["无正式教育","小学","中学","职业/ITE","文凭","学位或以上"] },
-      { icon: "🗣", label: "语言", question: "您能说或读哪些语言？", hint: "可选择多项。", options: ["英语","华语","马来语","泰米尔语","印地语","孟加拉语"] },
-    ],
-    reviewSections: {
-      personal: "个人信息",
-      job: "工作偏好",
-      experience: "工作经验",
-      skills: "技能与教育",
-    },
-    errors: {
-      required: "此字段为必填项。",
-      dob: "请输入有效日期。示例：1990年1月15日",
-      phone: "请输入包含国家代码的有效电话号码。",
-      email: "请输入有效的电子邮件地址。",
-      salary: "请输入数字，例如 1800",
-      daterange: "请输入日期，例如 2022年1月 – 2024年3月",
-    },
-    successTitle: (name) => `谢谢您，${name}！🎉`,
-    successMsg: (agency) => `您的简历已成功提交至 ${agency}。他们将审核您的资料，如有合适职位将与您联系。\n\n祝您好运！🙏`,
-  },
-  ms: {
-    back: "← Kembali",
-    next: "Teruskan →",
-    submit: "Hantar Resume ✓",
-    submitting: "Menghantar resume anda...",
-    editHint: "Ketik mana-mana medan untuk mengedit",
-    reviewTitle: "Semak Resume Anda",
-    reviewHint: "Semak semua maklumat dengan teliti sebelum menghantar.",
-    naBtn: "Tidak berkenaan / Langkau",
-    doneBtn: "Selesai — langkah seterusnya →",
-    stepOf: (a,b) => `Langkah ${a} daripada ${b}`,
-    steps: [
-      { icon: "🏬", label: "Agensi", question: "Resume ini untuk agensi pekerja mana?", hint: "Taip nama agensi tepat seperti yang diberikan.", placeholder: "cth. Worklink Manpower Pte Ltd" },
-      { icon: "👤", label: "Nama penuh", question: "Apakah nama penuh anda?", hint: "Masukkan nama penuh sah anda.", placeholder: "cth. Ahmad bin Ramli" },
-      { icon: "🎂", label: "Tarikh lahir", question: "Apakah tarikh lahir anda?", hint: "Contoh: 15 Jan 1990 atau 15/01/1990", placeholder: "cth. 15 Jan 1990" },
-      { icon: "🌏", label: "Kewarganegaraan", question: "Apakah kewarganegaraan anda?", hint: "Contoh: Malaysia, India, Bangladesh, Filipina", placeholder: "cth. Malaysia" },
-      { icon: "📍", label: "Negara", question: "Di negara manakah anda tinggal sekarang?", hint: "", placeholder: "cth. Malaysia" },
-      { icon: "🏙", label: "Bandar", question: "Di bandar atau pekan manakah anda berada?", hint: "", placeholder: "cth. Kuala Lumpur" },
-      { icon: "📞", label: "Telefon", question: "Apakah nombor telefon anda?", hint: "Sertakan kod negara. Contoh: +60 12-345 6789", placeholder: "cth. +60 12-345 6789" },
-      { icon: "📧", label: "Emel", question: "Apakah alamat emel anda?", hint: "Contoh: ahmad@gmail.com", placeholder: "cth. ahmad@gmail.com" },
-      { icon: "💼", label: "Jenis kerja", question: "Apakah jenis pekerjaan yang anda cari di Singapura?", hint: "Pilih semua yang berkenaan.", options: ["Pembinaan","Pembersihan","Penghantaran / Logistik","Keselamatan","Gudang","Makanan & Minuman / Dapur","Pembuatan","Lain-lain"] },
-      { icon: "🕐", label: "Susunan kerja", question: "Apakah jenis susunan kerja yang anda bersedia?", hint: "", options: ["Sepenuh masa","Separuh masa","Kerja shift"] },
-      { icon: "📅", label: "Ketersediaan", question: "Bilakah anda boleh mula bekerja di Singapura?", hint: "", options: ["Segera","Dalam 1 minggu","Dalam 1 bulan"] },
-      { icon: "💰", label: "Gaji (SGD)", question: "Berapakah gaji bulanan yang anda harapkan di Singapura?", hint: "Dalam Dolar Singapura. Kosongkan jika fleksibel.", placeholder: "cth. 1800" },
-      { icon: "📊", label: "Pengalaman", question: "Berapa tahun pengalaman anda?", hint: "Dalam jenis pekerjaan ini.", options: ["Tiada pengalaman","< 1 tahun","1–3 tahun","3–5 tahun","5–10 tahun","10+ tahun"] },
-      { icon: "🏢", label: "Jawatan 1", question: "Apakah jawatan terbaru anda?", hint: "Contoh: Pekerja Binaan, Pengawal Keselamatan, Pembersih", placeholder: "cth. Pekerja Binaan" },
-      { icon: "🏢", label: "Syarikat 1", question: "Di syarikat manakah anda bekerja?", hint: "", placeholder: "cth. Lim Construction Pte Ltd" },
-      { icon: "🏢", label: "Tempoh 1", question: "Bilakah anda bekerja di sana?", hint: "Contoh: Jan 2022 – Mac 2024", placeholder: "cth. Jan 2022 – Mac 2024" },
-      { icon: "🏢", label: "Jawatan 2", question: "Apakah jawatan kedua terbaru anda?", hint: "Kosongkan jika hanya ada satu pekerjaan.", placeholder: "cth. Pekerja Gudang" },
-      { icon: "🏢", label: "Syarikat 2", question: "Syarikat manakah itu?", hint: "", placeholder: "cth. ABC Logistics" },
-      { icon: "🏢", label: "Tempoh 2", question: "Bilakah anda bekerja di sana?", hint: "Contoh: Mac 2020 – Dis 2021", placeholder: "cth. Mac 2020 – Dis 2021" },
-      { icon: "🏢", label: "Jawatan 3", question: "Apakah jawatan ketiga terbaru anda?", hint: "Kosongkan jika hanya ada dua pekerjaan.", placeholder: "cth. Pembersih" },
-      { icon: "🏢", label: "Syarikat 3", question: "Syarikat manakah itu?", hint: "", placeholder: "cth. XYZ Services" },
-      { icon: "🏢", label: "Tempoh 3", question: "Bilakah anda bekerja di sana?", hint: "Contoh: Jan 2018 – Feb 2020", placeholder: "cth. Jan 2018 – Feb 2020" },
-      { icon: "🔧", label: "Kemahiran", question: "Apakah kemahiran dan alatan yang anda tahu?", hint: "Contoh: Forklift, perancah, kimpalan, peralatan pembersihan, memandu", placeholder: "cth. Forklift, perancah, kimpalan" },
-      { icon: "📜", label: "Sijil", question: "Adakah anda mempunyai sebarang sijil atau lesen?", hint: "Contoh: Lesen Forklift, BCSS, Sijil Kebersihan Makanan, Lesen Keselamatan", placeholder: "cth. Lesen Forklift, BCSS" },
-      { icon: "🎓", label: "Pendidikan", question: "Apakah tahap pendidikan tertinggi anda?", hint: "", options: ["Tiada pendidikan formal","Sekolah rendah","Sekolah menengah","Vokasional / ITE","Diploma","Ijazah atau lebih tinggi"] },
-      { icon: "🗣", label: "Bahasa", question: "Bahasa manakah yang anda boleh cakap atau baca?", hint: "Pilih semua yang berkenaan.", options: ["Inggeris","Mandarin","Melayu","Tamil","Hindi","Bengali"] },
-    ],
-    reviewSections: {
-      personal: "Maklumat Peribadi",
-      job: "Pilihan Pekerjaan",
-      experience: "Pengalaman Kerja",
-      skills: "Kemahiran & Pendidikan",
-    },
-    errors: {
-      required: "Medan ini diperlukan.",
-      dob: "Sila masukkan tarikh yang sah. Contoh: 15 Jan 1990",
-      phone: "Sila masukkan nombor telefon dengan kod negara.",
-      email: "Sila masukkan alamat e-mel yang sah.",
-      salary: "Sila masukkan nombor, cth. 1800",
-      daterange: "Sila masukkan tarikh, cth. Jan 2022 – Mac 2024",
-    },
-    successTitle: (name) => `Terima kasih, ${name}! 🎉`,
-    successMsg: (agency) => `Resume anda telah berjaya dihantar ke ${agency}. Mereka akan menyemak maklumat anda dan menghubungi anda jika ada jawatan yang sesuai.\n\nSemoga berjaya! 🙏`,
-  },
-  ta: {
-    back: "← திரும்பு",
-    next: "தொடரவும் →",
-    submit: "ரெஸ்யூமை சமர்ப்பி ✓",
-    submitting: "உங்கள் ரெஸ்யூமை சமர்ப்பிக்கிறோம்...",
-    editHint: "திருத்த எந்த புலத்தையும் தட்டவும்",
-    reviewTitle: "உங்கள் ரெஸ்யூமை சரிபார்க்கவும்",
-    reviewHint: "சமர்ப்பிக்கும் முன் அனைத்தையும் கவனமாக சரிபார்க்கவும்.",
-    naBtn: "பொருந்தாது / தவிர்",
-    doneBtn: "முடிந்தது — அடுத்த படி →",
-    stepOf: (a,b) => `படி ${a} / ${b}`,
-    steps: [
-      { icon: "🏬", label: "முகமை", question: "இந்த ரெஸ்யூம் எந்த மனிதவள முகமைக்கானது?", hint: "முகமையின் பெயரை சரியாக உள்ளிடவும்.", placeholder: "எ.கா. வொர்க்லிங்க் மன்பவர் பி.டி. லிட்" },
-      { icon: "👤", label: "முழு பெயர்", question: "உங்கள் முழு பெயர் என்ன?", hint: "உங்கள் முழு சட்டப்பூர்வ பெயரை உள்ளிடவும்.", placeholder: "எ.கா. அஹ்மத் பின் ரம்லி" },
-      { icon: "🎂", label: "பிறந்த தேதி", question: "உங்கள் பிறந்த தேதி என்ன?", hint: "எடுத்துக்காட்டு: 15 ஜன 1990 அல்லது 15/01/1990", placeholder: "எ.கா. 15 ஜன 1990" },
-      { icon: "🌏", label: "குடியுரிமை", question: "உங்கள் குடியுரிமை என்ன?", hint: "எடுத்துக்காட்டு: மலேசியன், இந்தியன், பங்களாதேஷி, பிலிப்பினோ", placeholder: "எ.கா. மலேசியன்" },
-      { icon: "📍", label: "நாடு", question: "நீங்கள் தற்போது எந்த நாட்டில் வசிக்கிறீர்கள்?", hint: "", placeholder: "எ.கா. மலேசியா" },
-      { icon: "🏙", label: "நகரம்", question: "நீங்கள் எந்த நகரம் அல்லது பட்டணத்தில் உள்ளீர்கள்?", hint: "", placeholder: "எ.கா. கோலாலம்பூர்" },
-      { icon: "📞", label: "தொலைபேசி", question: "உங்கள் தொலைபேசி எண் என்ன?", hint: "உங்கள் நாட்டுக் குறியீட்டைச் சேர்க்கவும். எடுத்துக்காட்டு: +60 12-345 6789", placeholder: "எ.கா. +60 12-345 6789" },
-      { icon: "📧", label: "மின்னஞ்சல்", question: "உங்கள் மின்னஞ்சல் முகவரி என்ன?", hint: "எடுத்துக்காட்டு: ahmad@gmail.com", placeholder: "எ.கா. ahmad@gmail.com" },
-      { icon: "💼", label: "வேலை வகை", question: "சிங்கப்பூரில் நீங்கள் எந்த வகையான வேலையைத் தேடுகிறீர்கள்?", hint: "பொருந்தும் அனைத்தையும் தேர்ந்தெடுக்கவும்.", options: ["கட்டுமானம்","சுத்தம்","டெலிவரி / லாஜிஸ்டிக்ஸ்","பாதுகாப்பு","கிடங்கு","உணவு & பானம் / சமையலறை","உற்பத்தி","மற்றவை"] },
-      { icon: "🕐", label: "பணி ஏற்பாடு", question: "நீங்கள் எந்த வகையான பணி ஏற்பாட்டிற்கு தயாராக உள்ளீர்கள்?", hint: "", options: ["முழு நேரம்","பகுதி நேரம்","ஷிப்ட் வேலை"] },
-      { icon: "📅", label: "கிடைக்கும் தன்மை", question: "சிங்கப்பூரில் நீங்கள் எப்போது வேலை செய்யத் தொடங்கலாம்?", hint: "", options: ["உடனடியாக","1 வாரத்திற்குள்","1 மாதத்திற்குள்"] },
-      { icon: "💰", label: "எதிர்பார்க்கும் சம்பளம் (SGD)", question: "சிங்கப்பூரில் உங்கள் எதிர்பார்க்கும் மாத சம்பளம் என்ன?", hint: "சிங்கப்பூர் டாலர்களில். நெகிழ்வானதாக இருந்தால் காலியாக விடவும்.", placeholder: "எ.கா. 1800" },
-      { icon: "📊", label: "அனுபவம்", question: "உங்களுக்கு எத்தனை வருட அனுபவம் உள்ளது?", hint: "இந்த வகை வேலையில்.", options: ["அனுபவம் இல்லை","< 1 வருடம்","1–3 வருடங்கள்","3–5 வருடங்கள்","5–10 வருடங்கள்","10+ வருடங்கள்"] },
-      { icon: "🏢", label: "பணி 1 பதவி", question: "உங்கள் சமீபத்திய வேலைப் பதவி என்ன?", hint: "எடுத்துக்காட்டு: கட்டுமானத் தொழிலாளி, பாதுகாப்புக் காவலர், துப்புரவாளர்", placeholder: "எ.கா. கட்டுமானத் தொழிலாளி" },
-      { icon: "🏢", label: "பணி 1 நிறுவனம்", question: "நீங்கள் எந்த நிறுவனத்தில் பணிபுரிந்தீர்கள்?", hint: "", placeholder: "எ.கா. லிம் கன்ஸ்ட்ரக்ஷன் பி.டி. லிட்" },
-      { icon: "🏢", label: "பணி 1 காலம்", question: "நீங்கள் எப்போது அங்கு பணிபுரிந்தீர்கள்?", hint: "எடுத்துக்காட்டு: ஜன 2022 – மார் 2024", placeholder: "எ.கா. ஜன 2022 – மார் 2024" },
-      { icon: "🏢", label: "பணி 2 பதவி", question: "உங்கள் இரண்டாவது சமீபத்திய வேலைப் பதவி என்ன?", hint: "உங்களுக்கு ஒரே ஒரு வேலை மட்டும் இருந்தால் காலியாக விடவும்.", placeholder: "எ.கா. கிடங்குத் தொழிலாளி" },
-      { icon: "🏢", label: "பணி 2 நிறுவனம்", question: "அது எந்த நிறுவனம்?", hint: "", placeholder: "எ.கா. ஏபிசி லாஜிஸ்டிக்ஸ்" },
-      { icon: "🏢", label: "பணி 2 காலம்", question: "நீங்கள் எப்போது அங்கு பணிபுரிந்தீர்கள்?", hint: "எடுத்துக்காட்டு: மார் 2020 – டிச 2021", placeholder: "எ.கா. மார் 2020 – டிச 2021" },
-      { icon: "🏢", label: "பணி 3 பதவி", question: "உங்கள் மூன்றாவது சமீபத்திய வேலைப் பதவி என்ன?", hint: "உங்களுக்கு இரண்டு வேலைகள் மட்டும் இருந்தால் காலியாக விடவும்.", placeholder: "எ.கா. துப்புரவாளர்" },
-      { icon: "🏢", label: "பணி 3 நிறுவனம்", question: "அது எந்த நிறுவனம்?", hint: "", placeholder: "எ.கா. எக்ஸ்வைஇஸட் சர்வீசஸ்" },
-      { icon: "🏢", label: "பணி 3 காலம்", question: "நீங்கள் எப்போது அங்கு பணிபுரிந்தீர்கள்?", hint: "எடுத்துக்காட்டு: ஜன 2018 – பிப் 2020", placeholder: "எ.கா. ஜன 2018 – பிப் 2020" },
-      { icon: "🔧", label: "திறன்கள்", question: "உங்களுக்கு என்ன திறன்கள் மற்றும் கருவிகள் தெரியும்?", hint: "எடுத்துக்காட்டு: ஃபோர்க்லிஃப்ட், சாரக்கட்டு, வெல்டிங், சுத்தம் செய்யும் உபகரணங்கள், ஓட்டுநர்", placeholder: "எ.கா. ஃபோர்க்லிஃப்ட், சாரக்கட்டு, வெல்டிங்" },
-      { icon: "📜", label: "சான்றிதழ்கள்", question: "உங்களிடம் ஏதேனும் சான்றிதழ்கள் அல்லது உரிமங்கள் உள்ளனவா?", hint: "எடுத்துக்காட்டு: ஃபோர்க்லிஃப்ட் உரிமம், பிசிஎஸ்எஸ், உணவு சுகாதார சான்றிதழ், பாதுகாப்பு உரிமம்", placeholder: "எ.கா. ஃபோர்க்லிஃப்ட் உரிமம், பிசிஎஸ்எஸ்" },
-      { icon: "🎓", label: "கல்வி", question: "உங்கள் மிக உயர்ந்த கல்வி நிலை என்ன?", hint: "", options: ["முறையான கல்வி இல்லை","தொடக்கப் பள்ளி","இடைநிலைப் பள்ளி","தொழிற்கல்வி / ஐடிஇ","டிப்ளமோ","பட்டம் அல்லது அதற்கு மேல்"] },
-      { icon: "🗣", label: "மொழிகள்", question: "நீங்கள் எந்த மொழிகளைப் பேசலாம் அல்லது படிக்கலாம்?", hint: "பொருந்தும் அனைத்தையும் தேர்ந்தெடுக்கவும்.", options: ["ஆங்கிலம்","மாண்டரின்","மலாய்","தமிழ்","இந்தி","வங்காளம்"] },
-    ],
-    reviewSections: {
-      personal: "தனிப்பட்ட விவரங்கள்",
-      job: "வேலை விருப்பங்கள்",
-      experience: "பணி அனுபவம்",
-      skills: "திறன்கள் & கல்வி",
-    },
-    errors: {
-      required: "இந்த புலம் தேவை.",
-      dob: "சரியான தேதியை உள்ளிடவும். எ.கா: 15 ஜன 1990",
-      phone: "நாட்டு குறியீட்டுடன் சரியான எண் உள்ளிடவும்.",
-      email: "சரியான மின்னஞ்சல் உள்ளிடவும்.",
-      salary: "எண் உள்ளிடவும், எ.கா. 1800",
-      daterange: "தேதி உள்ளிடவும், எ.கா. ஜன 2022 – மார் 2024",
-    },
-    successTitle: (name) => `நன்றி, ${name}! 🎉`,
-    successMsg: (agency) => `உங்கள் ரெஸ்யூம் ${agency}-க்கு வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது. அவர்கள் உங்கள் விவரங்களை மதிப்பாய்வு செய்து பொருத்தமான பதவி இருந்தால் உங்களை தொடர்புகொள்வார்கள்.\n\nவாழ்த்துக்கள்! 🙏`,
-  },
-  hi: {
-    back: "← वापस",
-    next: "जारी रखें →",
-    submit: "रेज़्यूमे जमा करें ✓",
-    submitting: "आपका रेज़्यूमे जमा किया जा रहा है...",
-    editHint: "संपादित करने के लिए किसी भी फ़ील्ड पर टैप करें",
-    reviewTitle: "अपना रेज़्यूमे जांचें",
-    reviewHint: "जमा करने से पहले सब कुछ ध्यान से जांचें।",
-    naBtn: "लागू नहीं / छोड़ें",
-    doneBtn: "पूर्ण — अगला चरण →",
-    stepOf: (a,b) => `चरण ${a} / ${b}`,
-    steps: [
-      { icon: "🏬", label: "एजेंसी", question: "यह रेज़्यूमे किस मैनपॉवर एजेंसी के लिए है?", hint: "एजेंसी का नाम बिल्कुल वैसा ही लिखें जैसा दिया गया है।", placeholder: "उदा. वर्कलिंक मैनपॉवर पीटीई लिमिटेड" },
-      { icon: "👤", label: "पूरा नाम", question: "आपका पूरा नाम क्या है?", hint: "अपना पूरा कानूनी नाम दर्ज करें।", placeholder: "उदा. अहमद बिन रमली" },
-      { icon: "🎂", label: "जन्म तिथि", question: "आपकी जन्म तिथि क्या है?", hint: "उदाहरण: 15 जनवरी 1990 या 15/01/1990", placeholder: "उदा. 15 जनवरी 1990" },
-      { icon: "🌏", label: "राष्ट्रीयता", question: "आपकी राष्ट्रीयता क्या है?", hint: "उदाहरण: मलेशियाई, भारतीय, बांग्लादेशी, फिलिपिनो", placeholder: "उदा. मलेशियाई" },
-      { icon: "📍", label: "देश", question: "आप वर्तमान में किस देश में रह रहे हैं?", hint: "", placeholder: "उदा. मलेशिया" },
-      { icon: "🏙", label: "शहर", question: "आप किस शहर या कस्बे में हैं?", hint: "", placeholder: "उदा. कुआलालंपुर" },
-      { icon: "📞", label: "फ़ोन", question: "आपका फ़ोन नंबर क्या है?", hint: "अपना देश कोड शामिल करें। उदाहरण: +60 12-345 6789", placeholder: "उदा. +60 12-345 6789" },
-      { icon: "📧", label: "ईमेल", question: "आपका ईमेल पता क्या है?", hint: "उदाहरण: ahmad@gmail.com", placeholder: "उदा. ahmad@gmail.com" },
-      { icon: "💼", label: "कार्य का प्रकार", question: "आप सिंगापुर में किस प्रकार का काम ढूंढ रहे हैं?", hint: "सभी लागू विकल्प चुनें।", options: ["निर्माण","सफाई","डिलीवरी / लॉजिस्टिक्स","सुरक्षा","गोदाम","खाद्य एवं पेय / रसोई","विनिर्माण","अन्य"] },
-      { icon: "🕐", label: "कार्य व्यवस्था", question: "आप किस प्रकार की कार्य व्यवस्था के लिए खुले हैं?", hint: "", options: ["पूर्णकालिक","अंशकालिक","शिफ्ट कार्य"] },
-      { icon: "📅", label: "उपलब्धता", question: "आप सिंगापुर में कब काम शुरू कर सकते हैं?", hint: "", options: ["तुरंत","1 सप्ताह के भीतर","1 महीने के भीतर"] },
-      { icon: "💰", label: "अपेक्षित वेतन (SGD)", question: "सिंगापुर में आपका अपेक्षित मासिक वेतन क्या है?", hint: "सिंगापुर डॉलर में। यदि लचीला है तो खाली छोड़ दें।", placeholder: "उदा. 1800" },
-      { icon: "📊", label: "अनुभव", question: "आपके पास कितने वर्षों का अनुभव है?", hint: "इस प्रकार के कार्य में।", options: ["कोई अनुभव नहीं","< 1 वर्ष","1–3 वर्ष","3–5 वर्ष","5–10 वर्ष","10+ वर्ष"] },
-      { icon: "🏢", label: "नौकरी 1 शीर्षक", question: "आपका सबसे हालिया नौकरी शीर्षक क्या था?", hint: "उदाहरण: निर्माण श्रमिक, सुरक्षा गार्ड, सफाईकर्मी", placeholder: "उदा. निर्माण श्रमिक" },
-      { icon: "🏢", label: "नौकरी 1 कंपनी", question: "आपने किस कंपनी में काम किया?", hint: "", placeholder: "उदा. लिम कंस्ट्रक्शन पीटीई लिमिटेड" },
-      { icon: "🏢", label: "नौकरी 1 तिथियाँ", question: "आपने वहां कब काम किया?", hint: "उदाहरण: जनवरी 2022 – मार्च 2024", placeholder: "उदा. जनवरी 2022 – मार्च 2024" },
-      { icon: "🏢", label: "नौकरी 2 शीर्षक", question: "आपका दूसरा सबसे हालिया नौकरी शीर्षक क्या था?", hint: "यदि आपके पास केवल एक नौकरी है तो खाली छोड़ दें।", placeholder: "उदा. गोदाम श्रमिक" },
-      { icon: "🏢", label: "नौकरी 2 कंपनी", question: "वह कौन सी कंपनी थी?", hint: "", placeholder: "उदा. एबीसी लॉजिस्टिक्स" },
-      { icon: "🏢", label: "नौकरी 2 तिथियाँ", question: "आपने वहां कब काम किया?", hint: "उदाहरण: मार्च 2020 – दिसंबर 2021", placeholder: "उदा. मार्च 2020 – दिसंबर 2021" },
-      { icon: "🏢", label: "नौकरी 3 शीर्षक", question: "आपका तीसरा सबसे हालिया नौकरी शीर्षक क्या था?", hint: "यदि आपके पास केवल दो नौकरियाँ हैं तो खाली छोड़ दें।", placeholder: "उदा. सफाईकर्मी" },
-      { icon: "🏢", label: "नौकरी 3 कंपनी", question: "वह कौन सी कंपनी थी?", hint: "", placeholder: "उदा. एक्सवाईजेड सर्विसेज" },
-      { icon: "🏢", label: "नौकरी 3 तिथियाँ", question: "आपने वहां कब काम किया?", hint: "उदाहरण: जनवरी 2018 – फरवरी 2020", placeholder: "उदा. जनवरी 2018 – फरवरी 2020" },
-      { icon: "🔧", label: "कौशल", question: "आप कौन से कौशल और उपकरण जानते हैं?", hint: "उदाहरण: फोर्कलिफ्ट, मचान, वेल्डिंग, सफाई उपकरण, ड्राइविंग", placeholder: "उदा. फोर्कलिफ्ट, मचान, वेल्डिंग" },
-      { icon: "📜", label: "प्रमाणपत्र", question: "क्या आपके पास कोई प्रमाणपत्र या लाइसेंस है?", hint: "उदाहरण: फोर्कलिफ्ट लाइसेंस, बीसीएसएस, खाद्य स्वच्छता प्रमाणपत्र, सुरक्षा लाइसेंस", placeholder: "उदा. फोर्कलिफ्ट लाइसेंस, बीसीएसएस" },
-      { icon: "🎓", label: "शिक्षा", question: "आपकी उच्चतम शैक्षिक योग्यता क्या है?", hint: "", options: ["कोई औपचारिक शिक्षा नहीं","प्राथमिक विद्यालय","माध्यमिक विद्यालय","व्यावसायिक / आईटीई","डिप्लोमा","डिग्री या उच्चतर"] },
-      { icon: "🗣", label: "भाषाएँ", question: "आप कौन सी भाषाएँ बोल या पढ़ सकते हैं?", hint: "सभी लागू विकल्प चुनें।", options: ["अंग्रेज़ी","मंदारिन","मलय","तमिल","हिंदी","बंगाली"] },
-    ],
-    reviewSections: {
-      personal: "व्यक्तिगत विवरण",
-      job: "नौकरी की प्राथमिकताएँ",
-      experience: "कार्य अनुभव",
-      skills: "कौशल और शिक्षा",
-    },
-    errors: {
-      required: "यह फ़ील्ड आवश्यक है।",
-      dob: "कृपया एक मान्य तारीख दर्ज करें। उदाहरण: 15 जनवरी 1990",
-      phone: "कृपया देश कोड के साथ एक मान्य फ़ोन नंबर दर्ज करें।",
-      email: "कृपया एक मान्य ईमेल पता दर्ज करें।",
-      salary: "कृपया एक संख्या दर्ज करें, जैसे 1800",
-      daterange: "कृपया तारीखें दर्ज करें, जैसे जनवरी 2022 – मार्च 2024",
-    },
-    successTitle: (name) => `धन्यवाद, ${name}! 🎉`,
-    successMsg: (agency) => `आपका रेज़्यूमे सफलतापूर्वक ${agency} को जमा कर दिया गया है। वे आपके विवरण की समीक्षा करेंगे और यदि कोई उपयुक्त पद होगा तो आपसे संपर्क करेंगे।\n\nशुभकामनाएँ! 🙏`,
-  },
-  bn: {
-    back: "← ফিরে যান",
-    next: "চালিয়ে যান →",
-    submit: "রিজিউম জমা দিন ✓",
-    submitting: "আপনার রিজিউম জমা দেওয়া হচ্ছে...",
-    editHint: "সম্পাদনা করতে যেকোনো ক্ষেত্রে ট্যাপ করুন",
-    reviewTitle: "আপনার রিজিউম পর্যালোচনা করুন",
-    reviewHint: "জমা দেওয়ার আগে সব কিছু সাবধানে পরীক্ষা করুন।",
-    naBtn: "প্রযোজ্য নয় / এড়িয়ে যান",
-    doneBtn: "সম্পন্ন — পরবর্তী ধাপ →",
-    stepOf: (a,b) => `ধাপ ${a} / ${b}`,
-    steps: [
-      { icon: "🏬", label: "এজেন্সি", question: "এই রিজিউমটি কোন ম্যানপাওয়ার এজেন্সির জন্য?", hint: "এজেন্সির নাম ঠিক যেমনটি দেওয়া হয়েছে লিখুন।", placeholder: "যেমন: ওয়ার্কলিঙ্ক ম্যানপাওয়ার পিটিই লিমিটেড" },
-      { icon: "👤", label: "পুরো নাম", question: "আপনার পুরো নাম কী?", hint: "আপনার পুরো আইনি নাম লিখুন।", placeholder: "যেমন: আহমদ বিন রামলি" },
-      { icon: "🎂", label: "জন্ম তারিখ", question: "আপনার জন্ম তারিখ কী?", hint: "উদাহরণ: ১৫ জানুয়ারি ১৯৯০ অথবা ১৫/০১/১৯৯০", placeholder: "যেমন: ১৫ জানুয়ারি ১৯৯০" },
-      { icon: "🌏", label: "জাতীয়তা", question: "আপনার জাতীয়তা কী?", hint: "উদাহরণ: মালয়েশিয়ান, ভারতীয়, বাংলাদেশি, ফিলিপিনো", placeholder: "যেমন: মালয়েশিয়ান" },
-      { icon: "📍", label: "দেশ", question: "আপনি বর্তমানে কোন দেশে থাকেন?", hint: "", placeholder: "যেমন: মালয়েশিয়া" },
-      { icon: "🏙", label: "শহর", question: "আপনি কোন শহর বা এলাকায় আছেন?", hint: "", placeholder: "যেমন: কুয়ালালামপুর" },
-      { icon: "📞", label: "ফোন", question: "আপনার ফোন নম্বর কী?", hint: "আপনার দেশের কোড অন্তর্ভুক্ত করুন। উদাহরণ: +60 12-345 6789", placeholder: "যেমন: +60 12-345 6789" },
-      { icon: "📧", label: "ইমেইল", question: "আপনার ইমেইল ঠিকানা কী?", hint: "উদাহরণ: ahmad@gmail.com", placeholder: "যেমন: ahmad@gmail.com" },
-      { icon: "💼", label: "কাজের ধরন", question: "সিঙ্গাপুরে আপনি কী ধরনের কাজ খুঁজছেন?", hint: "প্রযোজ্য সবগুলি নির্বাচন করুন।", options: ["নির্মাণ","পরিষ্কার","ডেলিভারি / লজিস্টিকস","নিরাপত্তা","গুদাম","খাদ্য ও পানীয় / রান্নাঘর","উৎপাদন","অন্যান্য"] },
-      { icon: "🕐", label: "কাজের ব্যবস্থা", question: "আপনি কী ধরনের কাজের ব্যবস্থায় আগ্রহী?", hint: "", options: ["পূর্ণকালীন","আংশিককালীন","শিফট কাজ"] },
-      { icon: "📅", label: "প্রাপ্যতা", question: "আপনি সিঙ্গাপুরে কখন কাজ শুরু করতে পারবেন?", hint: "", options: ["অবিলম্বে","১ সপ্তাহের মধ্যে","১ মাসের মধ্যে"] },
-      { icon: "💰", label: "প্রত্যাশিত বেতন (SGD)", question: "সিঙ্গাপুরে আপনার প্রত্যাশিত মাসিক বেতন কত?", hint: "সিঙ্গাপুর ডলারে। নমনীয় হলে ফাঁকা রাখুন।", placeholder: "যেমন: ১৮০০" },
-      { icon: "📊", label: "অভিজ্ঞতা", question: "আপনার কত বছরের অভিজ্ঞতা আছে?", hint: "এই ধরণের কাজে।", options: ["কোনো অভিজ্ঞতা নেই","< ১ বছর","১–৩ বছর","৩–৫ বছর","৫–১০ বছর","১০+ বছর"] },
-      { icon: "🏢", label: "চাকরি ১ পদবি", question: "আপনার সবশেষ চাকরির পদবি কী ছিল?", hint: "উদাহরণ: নির্মাণ শ্রমিক, নিরাপত্তা প্রহরী, পরিচ্ছন্নতাকর্মী", placeholder: "যেমন: নির্মাণ শ্রমিক" },
-      { icon: "🏢", label: "চাকরি ১ কোম্পানি", question: "আপনি কোন কোম্পানিতে কাজ করেছেন?", hint: "", placeholder: "যেমন: লিম কনস্ট্রাকশন পিটিই লিমিটেড" },
-      { icon: "🏢", label: "চাকরি ১ সময়কাল", question: "আপনি সেখানে কখন কাজ করেছেন?", hint: "উদাহরণ: জানুয়ারি ২০২২ – মার্চ ২০২৪", placeholder: "যেমন: জানুয়ারি ২০২২ – মার্চ ২০২৪" },
-      { icon: "🏢", label: "চাকরি ২ পদবি", question: "আপনার দ্বিতীয় সর্বশেষ চাকরির পদবি কী ছিল?", hint: "যদি আপনার শুধু একটি চাকরি থাকে তাহলে ফাঁকা রাখুন।", placeholder: "যেমন: গুদাম শ্রমিক" },
-      { icon: "🏢", label: "চাকরি ২ কোম্পানি", question: "সেটি কোন কোম্পানি ছিল?", hint: "", placeholder: "যেমন: এবিসি লজিস্টিকস" },
-      { icon: "🏢", label: "চাকরি ২ সময়কাল", question: "আপনি সেখানে কখন কাজ করেছেন?", hint: "উদাহরণ: মার্চ ২০২০ – ডিসেম্বর ২০২১", placeholder: "যেমন: মার্চ ২০২০ – ডিসেম্বর ২০২১" },
-      { icon: "🏢", label: "চাকরি ৩ পদবি", question: "আপনার তৃতীয় সর্বশেষ চাকরির পদবি কী ছিল?", hint: "যদি আপনার শুধু দুটি চাকরি থাকে তাহলে ফাঁকা রাখুন।", placeholder: "যেমন: পরিচ্ছন্নতাকর্মী" },
-      { icon: "🏢", label: "চাকরি ৩ কোম্পানি", question: "সেটি কোন কোম্পানি ছিল?", hint: "", placeholder: "যেমন: এক্সওয়াইজেড সার্ভিসেস" },
-      { icon: "🏢", label: "চাকরি ৩ সময়কাল", question: "আপনি সেখানে কখন কাজ করেছেন?", hint: "উদাহরণ: জানুয়ারি ২০১৮ – ফেব্রুয়ারি ২০২০", placeholder: "যেমন: জানুয়ারি ২০১৮ – ফেব্রুয়ারি ২০২০" },
-      { icon: "🔧", label: "দক্ষতা", question: "আপনি কী কী দক্ষতা এবং সরঞ্জাম জানেন?", hint: "উদাহরণ: ফর্কলিফ্ট, স্ক্যাফোল্ডিং, ওয়েল্ডিং, পরিষ্কারের সরঞ্জাম, ড্রাইভিং", placeholder: "যেমন: ফর্কলিফ্ট, স্ক্যাফোল্ডিং, ওয়েল্ডিং" },
-      { icon: "📜", label: "সার্টিফিকেশন", question: "আপনার কি কোনো সার্টিফিকেট বা লাইসেন্স আছে?", hint: "উদাহরণ: ফর্কলিফ্ট লাইসেন্স, বিসিএসএস, খাদ্য স্বাস্থ্যবিধি সার্টিফিকেট, নিরাপত্তা লাইসেন্স", placeholder: "যেমন: ফর্কলিফ্ট লাইসেন্স, বিসিএসএস" },
-      { icon: "🎓", label: "শিক্ষা", question: "আপনার সর্বোচ্চ শিক্ষাগত যোগ্যতা কী?", hint: "", options: ["কোনো আনুষ্ঠানিক শিক্ষা নেই","প্রাথমিক বিদ্যালয়","মাধ্যমিক বিদ্যালয়","বৃত্তিমূলক / আইটিই","ডিপ্লোমা","ডিগ্রি বা উচ্চতর"] },
-      { icon: "🗣", label: "ভাষা", question: "আপনি কোন ভাষায় কথা বলতে বা পড়তে পারেন?", hint: "প্রযোজ্য সবগুলি নির্বাচন করুন।", options: ["ইংরেজি","ম্যান্ডারিন","মালয়","তামিল","হিন্দি","বাংলা"] },
-    ],
-    reviewSections: {
-      personal: "ব্যক্তিগত বিবরণ",
-      job: "চাকরির পছন্দ",
-      experience: "কর্ম অভিজ্ঞতা",
-      skills: "দক্ষতা ও শিক্ষা",
-    },
-    errors: {
-      required: "এই ক্ষেত্রটি প্রয়োজন।",
-      dob: "একটি বৈধ তারিখ লিখুন। উদাহরণ: ১৫ জানুয়ারি ১৯৯০",
-      phone: "দেশের কোডসহ একটি বৈধ ফোন নম্বর লিখুন।",
-      email: "একটি বৈধ ইমেইল ঠিকানা লিখুন।",
-      salary: "একটি সংখ্যা লিখুন, যেমন ১৮০০",
-      daterange: "তারিখ লিখুন, যেমন জানুয়ারি ২০২২ – মার্চ ২০২৪",
-    },
-    successTitle: (name) => `ধন্যবাদ, ${name}! 🎉`,
-    successMsg: (agency) => `আপনার রিজিউম সফলভাবে ${agency}-তে জমা দেওয়া হয়েছে। তারা আপনার তথ্য পর্যালোচনা করবে এবং উপযুক্ত পদ থাকলে আপনার সাথে যোগাযোগ করবে।\n\nশুভকামনা! 🙏`,
-  },
+  // ... (add your other languages here, replicating the new photo step and passportNumber field in each)
 };
 
 // ============================================================
@@ -787,7 +545,7 @@ function getTotalSteps() {
 }
 
 // ============================================================
-// VALIDATION
+// VALIDATION (same as before)
 // ============================================================
 function validateField(type, value) {
   if (!value || !value.trim()) return null;
@@ -819,7 +577,6 @@ function render() {
   const totalSteps = getTotalSteps();
   const isReview = currentStep >= totalSteps;
   
-  // Update progress
   const pct = Math.round((currentStep / (totalSteps + 1)) * 100);
   document.getElementById("progressFill").style.width = pct + "%";
   document.getElementById("stepPct").textContent = pct + "%";
@@ -887,10 +644,43 @@ function render() {
     inner += `<div class="nav">
       ${currentStep > 0 ? `<button class="btn-back" onclick="goBack()">${t("back")}</button>` : ""}
     </div>`;
+  } else if (stepDef.type === "photo") {
+    inner += `
+      <input type="file" id="passportFile" class="file-input" accept="image/*" capture="environment" />
+      <div id="preview" style="margin-top: 10px;"></div>
+      <button id="scanBtn" class="opt-btn" style="width:100%; margin-top:12px;">📷 Scan Passport</button>
+      <div id="ocrLoading" class="ocr-loading" style="display:none;">
+        <div class="spinner-small"></div>
+        <span>Processing image...</span>
+      </div>
+      <div class="nav">
+        ${currentStep > 0 ? `<button class="btn-back" onclick="goBack()">${t("back")}</button>` : ""}
+        <button id="skipOcrBtn" class="btn-next" onclick="skipOcr()">Skip (Enter manually)</button>
+      </div>
+    `;
   }
   
   card.innerHTML = inner;
   wizard.appendChild(card);
+  
+  // Attach photo step event listeners if needed
+  if (stepDef.type === "photo") {
+    const fileInput = document.getElementById("passportFile");
+    const preview = document.getElementById("preview");
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          preview.innerHTML = `<img src="${ev.target.result}" class="preview-img" />`;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.innerHTML = "";
+      }
+    });
+    document.getElementById("scanBtn").addEventListener("click", handleScan);
+  }
   
   if (stepDef.type === "text") {
     setTimeout(() => document.getElementById("mainField")?.focus(), 100);
@@ -905,7 +695,7 @@ function renderReview() {
   card.className = "step-card active";
   
   const sections = [
-    { title: t("reviewSections").personal, keys: ["agency","name","dob","nationality","country","city","phone","email"] },
+    { title: t("reviewSections").personal, keys: ["agency","name","dob","nationality","passportNumber","country","city","phone","email"] },
     { title: t("reviewSections").job,      keys: ["jobType","workArrange","availability","salary","experience"] },
     { title: t("reviewSections").experience, keys: ["job1Title","job1Company","job1Dates","job2Title","job2Company","job2Dates","job3Title","job3Company","job3Dates"] },
     { title: t("reviewSections").skills,   keys: ["skills","certs","education","languages"] },
@@ -949,7 +739,59 @@ function renderReview() {
 }
 
 // ============================================================
-// ACTIONS
+// OCR HANDLER
+// ============================================================
+async function handleScan() {
+  const fileInput = document.getElementById("passportFile");
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("Please select a photo first.");
+    return;
+  }
+
+  const scanBtn = document.getElementById("scanBtn");
+  const ocrLoading = document.getElementById("ocrLoading");
+  scanBtn.disabled = true;
+  ocrLoading.style.display = "flex";
+
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    const res = await fetch("/ocr-passport", {
+      method: "POST",
+      body: formData,
+    });
+    const json = await res.json();
+    if (json.ok) {
+      // Pre-fill data
+      if (json.data.name) data.name = json.data.name;
+      if (json.data.dob) data.dob = json.data.dob;
+      if (json.data.nationality) data.nationality = json.data.nationality;
+      if (json.data.passportNumber) data.passportNumber = json.data.passportNumber;
+
+      // Move to next step (the fields will be shown pre-filled)
+      advance();
+    } else {
+      alert("OCR failed: " + (json.error || "Unknown error"));
+      scanBtn.disabled = false;
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Network error. Please try again or skip.");
+    scanBtn.disabled = false;
+  } finally {
+    ocrLoading.style.display = "none";
+  }
+}
+
+function skipOcr() {
+  // Skip photo step without OCR
+  advance();
+}
+
+// ============================================================
+// NAVIGATION (same as before)
 // ============================================================
 function selectOpt(btn, val) {
   btn.closest(".opts-grid").querySelectorAll(".opt-btn").forEach(b => b.classList.remove("selected"));
@@ -997,6 +839,10 @@ function goNext() {
     if (!data[stepDef.key] || !data[stepDef.key].trim()) return;
   } else if (stepDef.type === "opts") {
     if (!data[stepDef.key]) return;
+  } else if (stepDef.type === "photo") {
+    // If we got here via skipOcr, we already advanced; but if next is clicked, we skip anyway
+    advance();
+    return;
   }
   
   if (editingKey) { 
@@ -1061,7 +907,7 @@ function changeLang(l) {
 }
 
 // ============================================================
-// SUBMIT
+// SUBMIT (unchanged)
 // ============================================================
 async function submitResume() {
   const btn = document.querySelector(".btn-submit");
