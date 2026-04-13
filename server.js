@@ -10,14 +10,28 @@ const { pipeline } = require("stream/promises");
 require("dotenv").config();
 
 const { generateAndStorePDF } = require("./src/pdf");
+const packageInfo = require("./package.json");
 
 const app = express();
 const rootDir = __dirname;
 const resumeOutputDir = path.join(rootDir, "resume_output");
+const appName = "JobReady";
 
 app.use("/resume_output", express.static(resumeOutputDir));
 app.use(express.static(path.join(rootDir, "public")));
 app.use(express.json({ limit: "50mb" }));
+
+function getDeploymentMeta() {
+  const commit = String(process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || "").trim();
+  const branch = String(process.env.RENDER_GIT_BRANCH || process.env.GIT_BRANCH || "").trim();
+
+  return {
+    app: appName,
+    version: packageInfo.version,
+    commit: commit || null,
+    branch: branch || null,
+  };
+}
 
 function sanitizeTempSegment(value, fallback = "attachment") {
   const cleaned = String(value ?? "")
@@ -122,13 +136,21 @@ async function readSubmissionInput(req) {
 }
 
 // ─── Health check (used by cron keepalive) ────────────────────────────────────
-app.get("/health", (_req, res) => res.json({ status: "ok" }));
+app.get("/health", (_req, res) => res.json({ status: "ok", ...getDeploymentMeta() }));
 
 // ─── Main app + privacy page ─────────────────────────────────────────────────
 app.get("/", (_req, res) => res.sendFile(path.join(rootDir, "public", "index.html")));
 
 // ─── Privacy policy ───────────────────────────────────────────────────────────
 app.get("/privacy", (_req, res) => res.sendFile(path.join(rootDir, "public", "privacy.html")));
+
+// Passport OCR was moved to the browser. Keep this route non-fatal for stale clients.
+app.all("/ocr-passport", (_req, res) => {
+  res.status(410).json({
+    ok: false,
+    error: "Passport OCR now runs in the browser on the latest JobReady build. Redeploy main if this endpoint is still being called.",
+  });
+});
 
 // ─── Web wizard submit ────────────────────────────────────────────────────────
 app.post("/submit", async (req, res) => {
@@ -158,4 +180,8 @@ app.post("/submit", async (req, res) => {
 
 // ─── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 JobReady listening on port ${PORT}`));
+app.listen(PORT, () => {
+  const meta = getDeploymentMeta();
+  const extra = [meta.branch, meta.commit].filter(Boolean).join(" @ ");
+  console.log(`🚀 ${appName} v${meta.version} listening on port ${PORT}${extra ? ` (${extra})` : ""}`);
+});
