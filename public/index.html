@@ -205,6 +205,39 @@ body {
   background: rgba(231, 243, 241, 0.94);
   color: var(--success);
 }
+.context-banner {
+  display: none;
+  margin: 0 auto 12px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(44, 118, 109, 0.16);
+  background: rgba(231, 243, 241, 0.94);
+  color: var(--ink);
+  box-shadow: 0 18px 40px rgba(30, 35, 40, 0.08);
+}
+.context-banner.show { display: block; }
+.context-banner strong {
+  display: block;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+.context-banner span {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.context-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(44, 118, 109, 0.08);
+  border: 1px solid rgba(44, 118, 109, 0.12);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.6;
+}
 
 .builder-intro {
   display: grid;
@@ -682,6 +715,8 @@ main {
 .review-lb { font-size: 11px; color: var(--muted); font-weight: 500; min-width: 90px; margin-top: 2px; }
 .review-val { flex: 1; font-size: 14px; font-weight: 500; line-height: 1.4; }
 .review-edit { font-size: 12px; color: var(--accent); font-weight: 500; flex-shrink: 0; }
+.review-row.static { cursor: default; }
+.review-row.static:hover { background: transparent; }
 
 /* ── Submit btn ── */
 .btn-submit {
@@ -923,13 +958,14 @@ main {
   </div>
 
   <div class="ocr-status" id="ocrStatus"></div>
+  <div class="context-banner" id="contextBanner"></div>
 
   <section class="builder-intro">
     <div class="builder-copy">
-      <div class="builder-eyebrow">Resume intake workflow</div>
-      <h1>One guided builder for resume data, documents, and delivery.</h1>
+      <div class="builder-eyebrow">Worker self-service intake</div>
+      <h1>Let workers complete one Singapore job application themselves.</h1>
       <p>
-        Import a previous resume with free browser OCR, finish the intake, attach supporting files, and submit one clean packet.
+        JobReady gives Singapore manpower agencies and their overseas partners one guided link for workers to fill the resume, upload documents, and submit a cleaner packet without the usual back-and-forth.
       </p>
       <div class="builder-actions">
         <a class="builder-link" href="/">Back Home</a>
@@ -938,19 +974,19 @@ main {
     </div>
 
     <aside class="builder-side">
-      <div class="builder-side-label">Inside this flow</div>
+      <div class="builder-side-label">What this link handles</div>
       <div class="builder-highlights">
         <div class="builder-highlight">
-          <strong>Import</strong>
-          <span>Use OCR on an older resume image before continuing with the guided fields.</span>
+          <strong>Agency routing stays attached</strong>
+          <span>Partner links can preselect the Singapore agency so the worker does not need to guess who the application is for.</span>
         </div>
         <div class="builder-highlight">
-          <strong>Attach</strong>
-          <span>Add passports, certificates, licences, and extra files before final submission.</span>
+          <strong>Workers can fill it themselves</strong>
+          <span>Use the phone-friendly guided flow, easier date pickers, and browser OCR to reduce manual agency follow-up.</span>
         </div>
         <div class="builder-highlight">
-          <strong>Mirror</strong>
-          <span>Every finished packet can exist as both a local repo output and a mirrored cloud copy.</span>
+          <strong>Everything lands in one packet</strong>
+          <span>The resume, partner tag, and supporting documents are saved together before the submission is forwarded.</span>
         </div>
       </div>
     </aside>
@@ -967,7 +1003,7 @@ main {
           <div class="logo-icon">JR</div>
           <div class="logo-name">JobReady</div>
         </a>
-        <p>JobReady handles resume intake, document collection, PDF generation, and storage mirroring for Singapore agency submissions.</p>
+        <p>JobReady handles worker intake, partner-link routing, document collection, PDF generation, and storage mirroring for Singapore agency submissions.</p>
         <div class="site-footer-meta">© 2026 JobReady • Resume Builder</div>
       </div>
       <nav class="site-footer-nav">
@@ -1037,6 +1073,7 @@ const TR = {
       { k:"documents",   ic:"📎", label:"Additional documents", q:"Upload any supporting documents before we submit.",       hint:"Add as many files as you can. PDFs, photos, and common document types are welcome.", type:"files", optional:true },
     ],
     reviewSections: {
+      routing: "Agency Routing",
       personal: "Personal Details",
       job: "Job Preferences",
       experience: "Work Experience",
@@ -1122,6 +1159,41 @@ const STORAGE_KEY = "startjobready:wizard:v2";
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const HOME_RESET_URL = "/?reset=1";
 
+function cleanContextValue(value) {
+  return String(value ?? "").trim();
+}
+
+function buildCurrentResumeUrl() {
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+}
+
+function readPartnerContext() {
+  const params = new URLSearchParams(window.location.search);
+  const agency = cleanContextValue(params.get("agency"));
+  const partnerAgency = cleanContextValue(params.get("partnerAgency"));
+  const partnerCountry = cleanContextValue(params.get("partnerCountry"));
+  const partnerLinkCode = cleanContextValue(params.get("partnerLinkCode"));
+  const partnerLinkLabel = cleanContextValue(params.get("linkLabel"));
+
+  return {
+    agency,
+    partnerAgency,
+    partnerCountry,
+    partnerLinkCode,
+    partnerLinkLabel,
+    lockAgency: params.get("lockAgency") === "1" && Boolean(agency),
+  };
+}
+
+const PARTNER_CONTEXT = readPartnerContext();
+const EXTRA_FIELD_META = {
+  agency: { label: "Singapore agency", ic: "🏬" },
+  partnerAgency: { label: "Overseas partner", ic: "🤝" },
+  partnerCountry: { label: "Partner country", ic: "🌍" },
+  partnerLinkCode: { label: "Partner link code", ic: "🔗" },
+  partnerLinkLabel: { label: "Partner link label", ic: "🏷️" },
+};
+
 let lang = "en";
 let currentStep = 0;
 let data = {};
@@ -1137,12 +1209,65 @@ function t(key, ...args) {
 
 function getSteps() { return TR.en.steps; } // always use English step definitions
 
+function getFieldMeta(key) {
+  return getSteps().find(step => step.k === key) || EXTRA_FIELD_META[key] || { label: key, ic: "•" };
+}
+
+function hasPartnerContext() {
+  return Boolean(
+    PARTNER_CONTEXT.agency ||
+    PARTNER_CONTEXT.partnerAgency ||
+    PARTNER_CONTEXT.partnerCountry ||
+    PARTNER_CONTEXT.partnerLinkCode
+  );
+}
+
+function applyPartnerContext() {
+  if (PARTNER_CONTEXT.agency && (PARTNER_CONTEXT.lockAgency || !cleanContextValue(data.agency))) {
+    data.agency = PARTNER_CONTEXT.agency;
+  }
+  if (PARTNER_CONTEXT.partnerAgency) data.partnerAgency = PARTNER_CONTEXT.partnerAgency;
+  if (PARTNER_CONTEXT.partnerCountry) data.partnerCountry = PARTNER_CONTEXT.partnerCountry;
+  if (PARTNER_CONTEXT.partnerLinkCode) data.partnerLinkCode = PARTNER_CONTEXT.partnerLinkCode;
+  if (PARTNER_CONTEXT.partnerLinkLabel) data.partnerLinkLabel = PARTNER_CONTEXT.partnerLinkLabel;
+}
+
+function renderContextBanner() {
+  const el = document.getElementById("contextBanner");
+  if (!el) return;
+  if (!hasPartnerContext()) {
+    el.className = "context-banner";
+    el.innerHTML = "";
+    return;
+  }
+
+  const taggedVia = [PARTNER_CONTEXT.partnerAgency, PARTNER_CONTEXT.partnerCountry].filter(Boolean).join(" • ");
+  const bodyParts = [];
+  if (PARTNER_CONTEXT.agency) {
+    bodyParts.push(`This application is already routed to <strong>${escHtml(PARTNER_CONTEXT.agency)}</strong>.`);
+  }
+  if (taggedVia) {
+    bodyParts.push(`It will also be tagged to <strong>${escHtml(taggedVia)}</strong>.`);
+  }
+  if (PARTNER_CONTEXT.partnerLinkCode) {
+    bodyParts.push(`Reference code: <strong>${escHtml(PARTNER_CONTEXT.partnerLinkCode)}</strong>.`);
+  }
+
+  el.className = "context-banner show";
+  el.innerHTML = `
+    <strong>Agency link detected</strong>
+    <span>${bodyParts.join(" ")}</span>
+  `;
+}
+
 function persistDraft() {
   try {
+    applyPartnerContext();
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       lang,
       currentStep,
       data,
+      resumeUrl: buildCurrentResumeUrl(),
     }));
   } catch (_) {}
 }
@@ -1157,6 +1282,7 @@ function restoreDraft() {
     if (Number.isInteger(saved.currentStep)) currentStep = saved.currentStep;
     if (saved.data && typeof saved.data === "object") data = saved.data;
   } catch (_) {}
+  applyPartnerContext();
 }
 
 function clearDraft() {
@@ -1408,6 +1534,8 @@ function validateField(type, value) {
 
 // ── Render wizard ─────────────────────────────────────────────────────────────
 function render() {
+  applyPartnerContext();
+  renderContextBanner();
   const steps = getSteps();
   const total = steps.length + 1; // +1 for review
   const isReview = currentStep >= steps.length;
@@ -1426,6 +1554,7 @@ function render() {
 
   const s = steps[currentStep];
   const val = data[s.k] ?? "";
+  const agencyLocked = s.k === "agency" && PARTNER_CONTEXT.lockAgency && Boolean(PARTNER_CONTEXT.agency);
 
   const wizard = document.getElementById("wizard");
   wizard.innerHTML = "";
@@ -1473,9 +1602,12 @@ function render() {
       `;
     } else {
       inner += `
-        <input class="field" id="mainField" type="text" placeholder="${s.ph ?? ""}" value="${escHtml(val)}" />
+        <input class="field" id="mainField" type="text" placeholder="${agencyLocked ? "" : (s.ph ?? "")}" value="${escHtml(val)}" ${agencyLocked ? "disabled" : ""} />
         <div class="field-error" id="fieldErr"></div>
       `;
+      if (agencyLocked) {
+        inner += `<div class="context-note">This partner link already selected the Singapore agency for you. Continue when the agency name looks correct.</div>`;
+      }
     }
     if (s.optional) {
       inner += `<div style="margin-top:10px;"><button class="opt-btn" style="width:100%;text-align:center;color:var(--muted);" onclick="skipField()">${t("naBtn")}</button></div>`;
@@ -1577,11 +1709,13 @@ function render() {
       rangePresent?.addEventListener("change", syncRange);
       setTimeout(() => rangeStart?.focus(), 100);
     } else if (mainField) {
-      setTimeout(() => mainField.focus(), 100);
-      mainField.addEventListener("input", () => {
-        setDraftValue(s.k, mainField.value);
-      });
-      mainField.addEventListener("keydown", e => { if (e.key === "Enter") goNext(); });
+      if (!agencyLocked) {
+        setTimeout(() => mainField.focus(), 100);
+        mainField.addEventListener("input", () => {
+          setDraftValue(s.k, mainField.value);
+        });
+        mainField.addEventListener("keydown", e => { if (e.key === "Enter") goNext(); });
+      }
     }
   } else if (s.type === "files") {
     const attachmentInput = document.getElementById("attachmentInput");
@@ -1643,7 +1777,21 @@ function render() {
   }
 }
 
+function buildReviewRow(key, value, editable = true) {
+  const meta = getFieldMeta(key);
+  const rowClass = editable ? "review-row" : "review-row static";
+  const clickAttr = editable ? ` onclick="editField('${key}')"` : "";
+  const editLabel = editable ? `<span class="review-edit">Edit</span>` : "";
+  return `<div class="${rowClass}"${clickAttr}>
+    <span class="review-ic">${meta.ic}</span>
+    <span class="review-lb">${meta.label}</span>
+    <span class="review-val">${escHtml(value || "—")}</span>
+    ${editLabel}
+  </div>`;
+}
+
 function renderReview() {
+  applyPartnerContext();
   const steps = getSteps();
   const wizard = document.getElementById("wizard");
   wizard.innerHTML = "";
@@ -1651,7 +1799,8 @@ function renderReview() {
   card.className = "step-card active";
 
   const sections = [
-    { title: TR.en.reviewSections.personal, keys: ["agency","name","dob","nationality","country","city","phone","email"] },
+    { title: TR.en.reviewSections.routing, keys: ["agency","partnerAgency","partnerCountry","partnerLinkCode","partnerLinkLabel"], editable: key => key === "agency" },
+    { title: TR.en.reviewSections.personal, keys: ["name","dob","nationality","country","city","phone","email"] },
     { title: TR.en.reviewSections.job,      keys: ["jobType","workArrange","availability","salary","experience"] },
     { title: TR.en.reviewSections.experience, keys: ["job1Title","job1Company","job1Dates","job2Title","job2Company","job2Dates","job3Title","job3Company","job3Dates"] },
     { title: TR.en.reviewSections.skills,   keys: ["skills","certs","education","languages"] },
@@ -1665,16 +1814,14 @@ function renderReview() {
 
   sections.forEach(sec => {
     const rows = sec.keys.map(k => {
-      const s = steps.find(x=>x.k===k);
-      if (!s) return "";
       const v = data[k];
-      if (!v && s.optional) return "";
-      return `<div class="review-row" onclick="editField('${k}')">
-        <span class="review-ic">${s.ic}</span>
-        <span class="review-lb">${s.label}</span>
-        <span class="review-val">${escHtml(v||"—")}</span>
-        <span class="review-edit">Edit</span>
-      </div>`;
+      const meta = getFieldMeta(k);
+      const isOptionalStep = Boolean(steps.find(x => x.k === k)?.optional);
+      if (!v && isOptionalStep) return "";
+      if (!v && !["agency","partnerAgency","partnerCountry","partnerLinkCode","partnerLinkLabel"].includes(k)) return buildReviewRow(k, "—", true);
+      if (!v) return "";
+      const editable = typeof sec.editable === "function" ? sec.editable(k) : true;
+      return buildReviewRow(k, v, editable);
     }).join("");
     if (!rows.trim()) return;
     html += `<div class="review-section">
@@ -1741,9 +1888,11 @@ function skipField() {
 }
 
 function goNext() {
+  applyPartnerContext();
   const steps = getSteps();
   if (currentStep >= steps.length) return;
   const s = steps[currentStep];
+  const agencyLocked = s.k === "agency" && PARTNER_CONTEXT.lockAgency && Boolean(PARTNER_CONTEXT.agency);
 
   if (s.type === "text") {
     const field = document.getElementById("mainField");
@@ -1776,13 +1925,17 @@ function goNext() {
       data[s.k] = formatMonthRangeDisplay(start, end, present);
       if (!data[s.k] && !s.optional) { showErr(errEl, t("errDate")); return; }
     } else {
-      const val = field?.value.trim() ?? "";
-      if (!val && !s.optional) { showErr(errEl, t("errRequired")); return; }
-      if (val && s.validate) {
-        const err = validateField(s.validate, val);
-        if (err) { showErr(errEl, err); return; }
+      if (agencyLocked) {
+        data[s.k] = PARTNER_CONTEXT.agency;
+      } else {
+        const val = field?.value.trim() ?? "";
+        if (!val && !s.optional) { showErr(errEl, t("errRequired")); return; }
+        if (val && s.validate) {
+          const err = validateField(s.validate, val);
+          if (err) { showErr(errEl, err); return; }
+        }
+        data[s.k] = val;
       }
-      data[s.k] = val;
     }
   } else if (s.type === "multi") {
     if (!data[s.k] || !data[s.k].trim()) return;
@@ -2129,6 +2282,7 @@ async function handleOcrFile(event) {
 
 // ── Submit ─────────────────────────────────────────────────────────────────────
 async function submitResume() {
+  applyPartnerContext();
   const btn = document.querySelector(".btn-submit");
   if (btn) btn.disabled = true;
 
@@ -2189,6 +2343,10 @@ function showSuccess(result = {}) {
   const attachmentsNote = result.attachmentCount
     ? `<div class="success-msg" style="margin-top:16px;">${result.attachmentCount} additional document${result.attachmentCount > 1 ? "s" : ""} saved.</div>`
     : "";
+  const routingVia = [data.partnerAgency, data.partnerCountry].filter(Boolean).join(", ");
+  const routingNote = routingVia
+    ? `<div class="success-msg" style="margin-top:16px;">Tagged via ${escHtml(routingVia)}${data.partnerLinkCode ? ` · Reference ${escHtml(data.partnerLinkCode)}` : ""}.</div>`
+    : "";
   const mirrorNote = result.mirrorError ? `<div class="success-msg" style="margin-top:16px;">Mirror note: ${escHtml(result.mirrorError)}</div>` : "";
   card.innerHTML = `
     <div class="success-screen">
@@ -2197,6 +2355,7 @@ function showSuccess(result = {}) {
       <div class="success-msg">${t("successMsg", data.agency || "the agency").replace(/\n/g,"<br>")}</div>
       ${links.length ? `<div class="success-links">${links.join("")}</div>` : ""}
       ${attachmentsNote}
+      ${routingNote}
       ${mirrorNote}
     </div>
   `;
@@ -2213,6 +2372,7 @@ if (currentStep < 0 || currentStep > getSteps().length) currentStep = 0;
 document.getElementById("langSel").value = lang;
 document.getElementById("ocrFile").addEventListener("change", handleOcrFile);
 document.getElementById("importBtn").title = "Upload a resume image to autofill common fields";
+renderContextBanner();
 render();
 </script>
 </body>

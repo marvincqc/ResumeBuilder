@@ -507,7 +507,7 @@ li::before {
         <div class="eyebrow">Legal</div>
         <h1>Privacy Policy</h1>
         <p>
-          This page explains what JobReady collects, why it is collected, where submission files are stored, and how applicants can request changes or deletion.
+          This page explains what JobReady collects, why it is collected, where submission files are stored, and how partner-specific agency links affect the saved submission record.
         </p>
       </div>
 
@@ -530,13 +530,13 @@ li::before {
     <div class="intro-grid">
       <div class="intro-card">
         <p>
-          JobReady helps foreign workers prepare submissions for manpower agencies in Singapore. It captures the applicant data, generates the PDF, stores the result locally, and mirrors files to cloud storage when configured.
+          JobReady helps foreign workers prepare submissions for manpower agencies in Singapore. It captures applicant data, generates the PDF, stores the result locally, and mirrors files to cloud storage when configured.
         </p>
       </div>
       <aside class="intro-side">
         <span>Scope</span>
         <p>
-          This policy covers information submitted through the JobReady website, including resume details, uploaded documents, generated files, and related storage paths.
+          This policy covers information submitted through the JobReady website, including resume details, uploaded documents, generated files, related storage paths, and routing metadata from configured agency links.
         </p>
       </aside>
     </div>
@@ -559,6 +559,8 @@ li::before {
           <li>Preferred job type, work arrangement, and expected salary</li>
           <li>Languages spoken</li>
           <li>The manpower agency selected at the start of the form</li>
+          <li>The overseas partner or referral agency attached to the application link, when applicable</li>
+          <li>A partner link code or routing label used to identify the source link, when applicable</li>
           <li>A generated submission ID used to track the resume request</li>
           <li>Uploaded supporting documents that the applicant adds before submission</li>
         </ul>
@@ -570,6 +572,7 @@ li::before {
         <ul>
           <li>To generate your resume as a PDF document</li>
           <li>To submit your resume to the manpower agency you specify</li>
+          <li>To keep the submission tagged to the correct overseas partner or referral link when that link is used</li>
           <li>To store your resume, generated PDF, and supporting files so they can be reviewed and forwarded</li>
           <li>To keep a local and mirrored submission record when storage mirroring is configured</li>
         </ul>
@@ -580,6 +583,7 @@ li::before {
         <h2><span class="sec-num">4</span> How We Store Your Information</h2>
         <p>
           JobReady writes generated resumes and attachment bundles to the local project output structure under the selected agency folder.
+          When a configured partner link is used, the saved bundle may also contain the partner agency name, country, and link code so the route can be traced later.
           When Supabase credentials are configured, the same relative file structure is mirrored to cloud storage.
         </p>
         <p>
@@ -592,6 +596,7 @@ li::before {
         <p>Your information is shared only with:</p>
         <ul>
           <li><strong>The manpower agency</strong> you specify at the start of the form, for employment matching purposes</li>
+          <li><strong>The overseas partner or referral agency</strong> connected to the application link, when needed to coordinate the submission handoff</li>
           <li><strong>JobReady's operator</strong>, who reviews submissions and forwards resumes to agencies</li>
           <li><strong>Configured infrastructure providers</strong> that store the generated files and resume data on JobReady's behalf</li>
         </ul>
@@ -651,7 +656,7 @@ li::before {
             <span class="brand-sub">Resume intake workflow</span>
           </span>
         </a>
-        <p>JobReady handles resume intake, document collection, PDF generation, and storage mirroring for Singapore agency submissions.</p>
+        <p>JobReady handles resume intake, partner-link routing, document collection, PDF generation, and storage mirroring for Singapore agency submissions.</p>
         <div class="footer-meta">© 2026 JobReady • Privacy Policy</div>
       </div>
 

@@ -15,6 +15,7 @@ const packageInfo = require("./package.json");
 const app = express();
 const rootDir = __dirname;
 const resumeOutputDir = path.join(rootDir, "resume_output");
+const agencyLinksPath = path.join(rootDir, "config", "agency-links.json");
 const appName = "JobReady";
 
 app.use("/resume_output", express.static(resumeOutputDir));
@@ -43,6 +44,61 @@ function sanitizeTempSegment(value, fallback = "attachment") {
     .toLowerCase();
 
   return cleaned || fallback;
+}
+
+function normalizeAgencyLinkSlug(value) {
+  const cleaned = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return cleaned;
+}
+
+function readAgencyLinks() {
+  try {
+    const raw = fs.readFileSync(agencyLinksPath, "utf8");
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .map(item => {
+        const slug = normalizeAgencyLinkSlug(item.slug || item.code);
+        const targetAgency = String(item.targetAgency || item.agency || "").trim();
+        if (!slug || !targetAgency) return null;
+
+        return {
+          slug,
+          targetAgency,
+          partnerAgency: String(item.partnerAgency || item.sourceAgency || "").trim() || null,
+          partnerCountry: String(item.partnerCountry || "").trim() || null,
+          linkLabel: String(item.linkLabel || item.name || "").trim() || null,
+          description: String(item.description || "").trim() || null,
+          lockAgency: item.lockAgency !== false,
+        };
+      })
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function buildPartnerResumeUrl(link) {
+  const params = new URLSearchParams();
+  params.set("agency", link.targetAgency);
+  params.set("partnerLinkCode", link.slug);
+  if (link.partnerAgency) params.set("partnerAgency", link.partnerAgency);
+  if (link.partnerCountry) params.set("partnerCountry", link.partnerCountry);
+  if (link.linkLabel) params.set("linkLabel", link.linkLabel);
+  if (link.lockAgency) params.set("lockAgency", "1");
+  return `/resume?${params.toString()}`;
+}
+
+function buildSubmissionId(data) {
+  const stamp = Date.now();
+  const linkCode = sanitizeTempSegment(data?.partnerLinkCode || "", "").replace(/_/g, "-");
+  return linkCode ? `web-${linkCode}-${stamp}` : `web-${stamp}`;
 }
 
 function cleanupTempDir(dir) {
@@ -141,6 +197,36 @@ app.get("/health", (_req, res) => res.json({ status: "ok", ...getDeploymentMeta(
 // ─── Main pages ───────────────────────────────────────────────────────────────
 app.get("/", (_req, res) => res.sendFile(path.join(rootDir, "public", "home.html")));
 app.get("/resume", (_req, res) => res.sendFile(path.join(rootDir, "public", "index.html")));
+app.get("/apply/:slug", (req, res) => {
+  const slug = normalizeAgencyLinkSlug(req.params.slug);
+  const link = readAgencyLinks().find(item => item.slug === slug);
+  if (!link) {
+    return res.status(404).type("html").send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Link Not Found — JobReady</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4efe6; color:#13202b; margin:0; display:grid; place-items:center; min-height:100vh; padding:24px; }
+    .card { max-width:560px; background:#fff; border-radius:24px; padding:32px; box-shadow:0 24px 60px rgba(12,18,24,0.14); }
+    h1 { margin:0 0 12px; font-size:32px; }
+    p { margin:0 0 18px; line-height:1.7; color:#62717f; }
+    a { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 18px; border-radius:999px; background:#13202b; color:#fff; text-decoration:none; font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Partner link not found</h1>
+    <p>This application link is not active or may have been typed incorrectly. Please ask your agency for the correct JobReady link.</p>
+    <a href="/">Go to JobReady Home</a>
+  </div>
+</body>
+</html>`);
+  }
+
+  return res.redirect(buildPartnerResumeUrl(link));
+});
 
 // ─── Privacy policy ───────────────────────────────────────────────────────────
 app.get("/privacy", (_req, res) => res.sendFile(path.join(rootDir, "public", "privacy.html")));
@@ -164,10 +250,13 @@ app.post("/submit", async (req, res) => {
       return res.status(400).json({ ok: false, error: "No data provided" });
     }
 
-    const submissionId = "web-" + Date.now();
+    const submissionId = buildSubmissionId(data);
     const safeAttachments = Array.isArray(attachments) ? attachments : [];
     const result = await generateAndStorePDF(data, submissionId, safeAttachments);
-    console.log(`✅ Submission: ${data.name} → ${data.agency} (${safeAttachments.length} attachment(s))`);
+    const partnerSuffix = data.partnerAgency
+      ? ` via ${data.partnerAgency}${data.partnerCountry ? `, ${data.partnerCountry}` : ""}`
+      : "";
+    console.log(`✅ Submission: ${data.name} → ${data.agency}${partnerSuffix} (${safeAttachments.length} attachment(s))`);
     res.json({ ok: true, ...result });
   } catch (err) {
     console.error("Submit error:", err.message);

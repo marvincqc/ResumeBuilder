@@ -1,0 +1,18 @@
+[
+  {
+    "slug": "demo-manila",
+    "targetAgency": "Demo Singapore Manpower Pte Ltd",
+    "partnerAgency": "Demo Overseas Recruitment Manila",
+    "partnerCountry": "Philippines",
+    "linkLabel": "Manila partner link",
+    "description": "Sample partner link. Replace this record with your real overseas agency setup."
+  },
+  {
+    "slug": "demo-dhaka",
+    "targetAgency": "Demo Singapore Manpower Pte Ltd",
+    "partnerAgency": "Demo Dhaka Recruitment Services",
+    "partnerCountry": "Bangladesh",
+    "linkLabel": "Dhaka partner link",
+    "description": "Sample partner link. Replace this record with your real overseas agency setup."
+  }
+]
