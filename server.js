@@ -16,7 +16,7 @@ const packageInfo = require("./package.json");
 // Supabase admin client (service role for server-side inserts + JWT validation)
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY
 );
 
 const app = express();
@@ -522,7 +522,7 @@ app.post("/submit", async (req, res) => {
         nationality: data.nationality || null,
         job_type: data.jobType || data.job_type || null,
         data,
-        pdf_path: result.pdfPath || null,
+        pdf_path: result.storagePath || null,
         attachment_count: result.attachmentCount || 0,
       });
     } catch (dbErr) {
