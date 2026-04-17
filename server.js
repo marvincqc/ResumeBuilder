@@ -257,7 +257,13 @@ app.post("/submit", async (req, res) => {
       ? ` via ${data.partnerAgency}${data.partnerCountry ? `, ${data.partnerCountry}` : ""}`
       : "";
     console.log(`✅ Submission: ${data.name} → ${data.agency}${partnerSuffix} (${safeAttachments.length} attachment(s))`);
-    res.json({ ok: true, ...result });
+    if (result.mirrorError) {
+      console.warn(`Mirror note for ${submissionId}: ${result.mirrorError}`);
+    }
+    res.json({
+      ok: true,
+      attachmentCount: result.attachmentCount,
+    });
   } catch (err) {
     console.error("Submit error:", err.message);
     res.status(err.statusCode || 500).json({ ok: false, error: err.message });

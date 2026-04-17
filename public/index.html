@@ -2333,13 +2333,6 @@ function showSuccess(result = {}) {
   wizard.innerHTML = "";
   const card = document.createElement("div");
   card.className = "step-card active";
-  const links = [];
-  if (result.localUrl) {
-    links.push(`<a class="success-link" href="${escHtml(encodeURI(result.localUrl))}" target="_blank" rel="noopener">Open local resume</a>`);
-  }
-  if (result.pdfUrl) {
-    links.push(`<a class="success-link secondary" href="${escHtml(encodeURI(result.pdfUrl))}" target="_blank" rel="noopener">Open Supabase copy</a>`);
-  }
   const attachmentsNote = result.attachmentCount
     ? `<div class="success-msg" style="margin-top:16px;">${result.attachmentCount} additional document${result.attachmentCount > 1 ? "s" : ""} saved.</div>`
     : "";
@@ -2347,16 +2340,15 @@ function showSuccess(result = {}) {
   const routingNote = routingVia
     ? `<div class="success-msg" style="margin-top:16px;">Tagged via ${escHtml(routingVia)}${data.partnerLinkCode ? ` · Reference ${escHtml(data.partnerLinkCode)}` : ""}.</div>`
     : "";
-  const mirrorNote = result.mirrorError ? `<div class="success-msg" style="margin-top:16px;">Mirror note: ${escHtml(result.mirrorError)}</div>` : "";
+  const noCopyNote = `<div class="success-msg" style="margin-top:16px;">For privacy and agency processing control, no resume copy is sent back to the submitting worker.</div>`;
   card.innerHTML = `
     <div class="success-screen">
       <span class="success-icon">🎉</span>
       <div class="success-title">${t("successTitle", data.name?.split(" ")[0] || "")}</div>
       <div class="success-msg">${t("successMsg", data.agency || "the agency").replace(/\n/g,"<br>")}</div>
-      ${links.length ? `<div class="success-links">${links.join("")}</div>` : ""}
       ${attachmentsNote}
       ${routingNote}
-      ${mirrorNote}
+      ${noCopyNote}
     </div>
   `;
   wizard.appendChild(card);
