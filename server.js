@@ -334,6 +334,7 @@ app.post("/api/agency/setup", requireAuth, async (req, res) => {
     .single();
 
   if (error) {
+    console.error("agency/setup error:", error.code, error.message);
     if (error.code === "23505") return res.status(409).json({ ok: false, error: "Slug already taken. Choose another." });
     return res.status(500).json({ ok: false, error: error.message });
   }
