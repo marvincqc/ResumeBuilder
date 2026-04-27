@@ -607,6 +607,87 @@ app.post("/submit", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) =
   }
 });
 
+// ─── Admin ────────────────────────────────────────────────────────────────────
+function requireAdmin(req, res, next) {
+  if (!req.user || req.user.email !== SUPER_ADMIN) {
+    return res.status(403).json({ ok: false, error: "Forbidden" });
+  }
+  next();
+}
+
+app.get("/admin", (_req, res) => res.sendFile(path.join(rootDir, "public", "admin.html")));
+
+app.get("/api/admin/stats", requireAuth, requireAdmin, async (req, res) => {
+  const [{ count: agencyCount }, { count: submissionCount }, { data: { users } }] = await Promise.all([
+    supabase.from("agencies").select("*", { count: "exact", head: true }),
+    supabase.from("submissions").select("*", { count: "exact", head: true }),
+    supabase.auth.admin.listUsers({ perPage: 1000 }),
+  ]);
+  res.json({ ok: true, agencies: agencyCount || 0, submissions: submissionCount || 0, authUsers: users.length });
+});
+
+app.get("/api/admin/agencies", requireAuth, requireAdmin, async (req, res) => {
+  const { data: agencies, error } = await supabase
+    .from("agencies")
+    .select("id, name, slug, auth_id, created_at")
+    .order("created_at", { ascending: false });
+  if (error) return res.status(500).json({ ok: false, error: error.message });
+
+  const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  const userMap = Object.fromEntries(users.map(u => [u.id, u.email]));
+
+  const { data: counts } = await supabase
+    .from("submissions")
+    .select("agency_id");
+  const countMap = {};
+  (counts || []).forEach(r => { countMap[r.agency_id] = (countMap[r.agency_id] || 0) + 1; });
+
+  const result = agencies.map(a => ({
+    ...a,
+    email: userMap[a.auth_id] || null,
+    submission_count: countMap[a.id] || 0,
+  }));
+  res.json({ ok: true, agencies: result });
+});
+
+app.delete("/api/admin/agencies/:id", requireAuth, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { data: agency } = await supabase.from("agencies").select("auth_id").eq("id", id).maybeSingle();
+  if (!agency) return res.status(404).json({ ok: false, error: "Not found" });
+
+  await supabase.from("submissions").delete().eq("agency_id", id);
+  await supabase.from("partner_links").delete().eq("agency_id", id);
+  await supabase.from("agencies").delete().eq("id", id);
+  if (agency.auth_id) await supabase.auth.admin.deleteUser(agency.auth_id);
+
+  res.json({ ok: true });
+});
+
+app.delete("/api/admin/submissions/:id", requireAuth, requireAdmin, async (req, res) => {
+  const { error } = await supabase.from("submissions").delete().eq("id", req.params.id);
+  if (error) return res.status(500).json({ ok: false, error: error.message });
+  res.json({ ok: true });
+});
+
+app.post("/api/admin/wipe", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    await supabase.from("submissions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("partner_links").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await supabase.from("agencies").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+    const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    await Promise.all(
+      users
+        .filter(u => u.email !== SUPER_ADMIN)
+        .map(u => supabase.auth.admin.deleteUser(u.id))
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // ─── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {

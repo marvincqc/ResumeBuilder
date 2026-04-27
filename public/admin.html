@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — JobReady</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root {
+  --bg: #f5f2ec;
+  --ink: #0d1b27;
+  --muted: #7a8a96;
+  --brand: #c85e38;
+  --brand-dark: #a34526;
+  --line: rgba(13,27,39,0.08);
+  --radius: 16px;
+  --danger: #c53030;
+  --danger-bg: #fff5f5;
+  --danger-line: #fed7d7;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Plus Jakarta Sans", sans-serif; color: var(--ink); background: var(--bg); min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+
+.nav { background: #fff; border-bottom: 1px solid var(--line); padding: 0 max(24px, calc((100% - 1200px)/2)); height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.nav-brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; letter-spacing: -0.03em; }
+.nav-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--brand); color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+.admin-badge { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand); background: #fff0eb; border: 1px solid #f9c9b6; padding: 3px 8px; border-radius: 6px; }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.sign-out { font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: none; cursor: pointer; }
+.sign-out:hover { color: var(--ink); }
+
+.page { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+
+h2 { font-family: "Fraunces", serif; font-size: 22px; letter-spacing: -0.03em; margin-bottom: 16px; }
+
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.stat-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; }
+.stat-label { font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.stat-value { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; }
+
+.card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 32px; }
+.card-head { padding: 18px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.card-head h2 { margin: 0; font-size: 16px; font-family: "Plus Jakarta Sans", sans-serif; font-weight: 800; }
+
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); }
+td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafaf9; }
+
+.btn-del { font-size: 12px; font-weight: 700; color: var(--danger); background: none; border: 1px solid var(--danger-line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.btn-del:hover { background: var(--danger-bg); }
+
+.empty { padding: 40px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+.spinner { width: 20px; height: 20px; border: 2.5px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 32px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.danger-zone { border: 1px solid var(--danger-line); border-radius: var(--radius); background: var(--danger-bg); padding: 24px; margin-top: 48px; }
+.danger-zone h2 { font-family: "Plus Jakarta Sans", sans-serif; font-size: 15px; font-weight: 800; color: var(--danger); margin-bottom: 8px; }
+.danger-zone p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+.btn-wipe { background: var(--danger); color: #fff; border: none; border-radius: 999px; padding: 12px 28px; font-family: "Plus Jakarta Sans", sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+.btn-wipe:hover { background: #9b2c2c; }
+.btn-wipe:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.msg { font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-top: 14px; }
+.msg.error { background: var(--danger-bg); border: 1px solid var(--danger-line); color: var(--danger); }
+.msg.success { background: #f0fff4; border: 1px solid #c6f6d5; color: #276749; }
+
+.tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.tag.active { background: #f0fff4; color: #276749; }
+
+.load-more { display: flex; justify-content: center; padding: 16px; border-top: 1px solid var(--line); }
+.btn-more { font-size: 13px; font-weight: 700; color: var(--brand); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 20px; cursor: pointer; }
+.btn-more:hover { border-color: var(--brand); }
+.btn-more:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.blocked { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div id="blockedMsg" class="blocked" style="display:none;">
+  <span style="font-size:32px;">🚫</span>
+  <strong style="color:var(--ink);">Access denied</strong>
+  <span>This page is restricted to the platform administrator.</span>
+  <a href="/dashboard" style="color:var(--brand);font-weight:700;margin-top:8px;">Go to dashboard</a>
+</div>
+
+<div id="app" style="display:none;">
+
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-mark">JR</div>
+    JobReady
+    <span class="admin-badge">Admin</span>
+  </div>
+  <div class="nav-right">
+    <button class="sign-out" id="signOutBtn">Sign out</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="stat-label">Agencies</div><div class="stat-value" id="statAgencies">—</div></div>
+    <div class="stat-card"><div class="stat-label">Submissions</div><div class="stat-value" id="statSubmissions">—</div></div>
+    <div class="stat-card"><div class="stat-label">Auth users</div><div class="stat-value" id="statUsers">—</div></div>
+  </div>
+
+  <!-- Agencies -->
+  <div class="card">
+    <div class="card-head"><h2>Agencies</h2></div>
+    <div id="agenciesContent"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Submissions -->
+  <div class="card">
+    <div class="card-head"><h2>Submissions</h2></div>
+    <div id="submissionsContent"><div class="spinner"></div></div>
+    <div class="load-more" id="loadMoreWrap" style="display:none;">
+      <button class="btn-more" id="loadMoreBtn">Load more</button>
+    </div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="danger-zone">
+    <h2>Danger Zone</h2>
+    <p>Permanently delete all submissions, partner links, agencies, and auth users (except your own account). This cannot be undone.</p>
+    <button class="btn-wipe" id="wipeBtn">Wipe all data</button>
+    <div id="wipeMsg"></div>
+  </div>
+
+</div><!-- /page -->
+</div><!-- /app -->
+
+<script>
+(function () {
+  const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  let token = null;
+  let nextCursor = null;
+  let loadingMore = false;
+
+  function auth() { return { Authorization: "Bearer " + token }; }
+  function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function fmt(iso) {
+    if (!iso) return "—";
+    return new Date(iso).toLocaleString("en-SG", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" });
+  }
+
+  // ── Auth ────────────────────────────────────────────────────────────────────
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (session) token = session.access_token;
+  });
+
+  sb.auth.getSession().then(async ({ data: { session } }) => {
+    if (!session) return window.location.replace("/login");
+    token = session.access_token;
+
+    // Verify admin via a stats probe
+    const probe = await fetch("/api/admin/stats", { headers: auth() });
+    if (probe.status === 401) return window.location.replace("/login");
+    if (probe.status === 403) {
+      document.getElementById("blockedMsg").style.display = "flex";
+      return;
+    }
+
+    document.getElementById("app").style.display = "";
+    const stats = await probe.json();
+    document.getElementById("statAgencies").textContent = stats.agencies;
+    document.getElementById("statSubmissions").textContent = stats.submissions;
+    document.getElementById("statUsers").textContent = stats.authUsers;
+
+    loadAgencies();
+    loadSubmissions();
+  });
+
+  document.getElementById("signOutBtn").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    window.location.replace("/login");
+  });
+
+  // ── Agencies ────────────────────────────────────────────────────────────────
+  async function loadAgencies() {
+    const res = await fetch("/api/admin/agencies", { headers: auth() });
+    const json = await res.json();
+    const el = document.getElementById("agenciesContent");
+
+    if (!json.ok || !json.agencies.length) {
+      el.innerHTML = `<div class="empty">No agencies yet.</div>`;
+      return;
+    }
+
+    const rows = json.agencies.map(a => `
+      <tr id="agency-row-${esc(a.id)}">
+        <td><strong>${esc(a.name)}</strong></td>
+        <td style="color:var(--muted)">${esc(a.slug)}</td>
+        <td>${esc(a.email || "—")}</td>
+        <td>${a.submission_count}</td>
+        <td>${fmt(a.created_at)}</td>
+        <td><button class="btn-del" onclick="deleteAgency('${esc(a.id)}', '${esc(a.name)}')">Delete</button></td>
+      </tr>`).join("");
+
+    el.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Name</th><th>Slug</th><th>Email</th><th>Submissions</th><th>Created</th><th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  window.deleteAgency = async function(id, name) {
+    if (!confirm(`Delete agency "${name}" and all their data? This cannot be undone.`)) return;
+    const res = await fetch(`/api/admin/agencies/${encodeURIComponent(id)}`, { method: "DELETE", headers: auth() });
+    const json = await res.json();
+    if (!json.ok) return alert("Error: " + json.error);
+    document.getElementById("agency-row-" + id)?.remove();
+    refreshStats();
+  };
+
+  // ── Submissions ─────────────────────────────────────────────────────────────
+  async function loadSubmissions(cursor) {
+    if (loadingMore) return;
+    loadingMore = true;
+    const btn = document.getElementById("loadMoreBtn");
+    btn.disabled = true;
+
+    try {
+      const url = `/api/submissions?limit=50${cursor ? "&cursor=" + encodeURIComponent(cursor) : ""}`;
+      const res = await fetch(url, { headers: auth() });
+      const json = await res.json();
+      const el = document.getElementById("submissionsContent");
+
+      if (!json.ok) {
+        el.innerHTML = `<div class="empty" style="color:var(--danger)">${esc(json.error)}</div>`;
+        return;
+      }
+
+      nextCursor = json.nextCursor;
+      document.getElementById("loadMoreWrap").style.display = nextCursor ? "flex" : "none";
+      btn.disabled = false;
+
+      if (!cursor && !json.submissions.length) {
+        el.innerHTML = `<div class="empty">No submissions yet.</div>`;
+        return;
+      }
+
+      if (!cursor) {
+        el.innerHTML = `
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Nationality</th><th>Job type</th><th>Attachments</th><th>Submitted</th><th></th>
+            </tr></thead>
+            <tbody id="subBody"></tbody>
+          </table>`;
+      }
+
+      const tbody = document.getElementById("subBody");
+      json.submissions.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.id = "sub-row-" + s.id;
+        tr.innerHTML = `
+          <td><strong>${esc(s.worker_name || "—")}</strong></td>
+          <td>${esc(s.nationality || "—")}</td>
+          <td>${esc(s.job_type || "—")}</td>
+          <td>${s.attachment_count || 0}</td>
+          <td style="color:var(--muted)">${fmt(s.created_at)}</td>
+          <td><button class="btn-del" onclick="deleteSubmission('${esc(s.id)}')">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+    } finally {
+      loadingMore = false;
+    }
+  }
+
+  document.getElementById("loadMoreBtn").addEventListener("click", () => {
+    if (nextCursor) loadSubmissions(nextCursor);
+  });
+
+  window.deleteSubmission = async function(id) {
+    if (!confirm("Delete this submission? This cannot be undone.")) return;
+    const res = await fetch(`/api/admin/submissions/${encodeURIComponent(id)}`, { method: "DELETE", headers: auth() });
+    const json = await res.json();
+    if (!json.ok) return alert("Error: " + json.error);
+    document.getElementById("sub-row-" + id)?.remove();
+    refreshStats();
+  };
+
+  // ── Stats refresh ───────────────────────────────────────────────────────────
+  async function refreshStats() {
+    const res = await fetch("/api/admin/stats", { headers: auth() });
+    const json = await res.json();
+    if (!json.ok) return;
+    document.getElementById("statAgencies").textContent = json.agencies;
+    document.getElementById("statSubmissions").textContent = json.submissions;
+    document.getElementById("statUsers").textContent = json.authUsers;
+  }
+
+  // ── Wipe ────────────────────────────────────────────────────────────────────
+  document.getElementById("wipeBtn").addEventListener("click", async () => {
+    const confirmed = prompt('Type "WIPE" to confirm deleting all data:');
+    if (confirmed !== "WIPE") return;
+
+    const btn = document.getElementById("wipeBtn");
+    btn.disabled = true; btn.textContent = "Wiping…";
+
+    const res = await fetch("/api/admin/wipe", { method: "POST", headers: auth() });
+    const json = await res.json();
+
+    btn.disabled = false; btn.textContent = "Wipe all data";
+
+    const msgEl = document.getElementById("wipeMsg");
+    if (!json.ok) {
+      msgEl.innerHTML = `<div class="msg error">Error: ${esc(json.error)}</div>`;
+      return;
+    }
+
+    msgEl.innerHTML = `<div class="msg success">All data wiped successfully. Reloading…</div>`;
+    setTimeout(() => window.location.reload(), 1500);
+  });
+})();
+</script>
+</body>
+</html>
