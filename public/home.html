@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JobReady — Stop chasing workers for their details.</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 
 :root {
@@ -753,24 +755,37 @@ if (handleResetFlag()) {
   resetNotice.classList.add("show");
 }
 
-const savedDraft = getSavedDraft();
-const hasDraft   = Boolean(savedDraft && savedDraft.data && Object.keys(savedDraft.data).length);
-const savedUrl   = (savedDraft && typeof savedDraft.resumeUrl === "string"
-  && savedDraft.resumeUrl.startsWith("/resume"))
-  ? savedDraft.resumeUrl : "/resume";
-
-if (hasDraft) {
-  draftChip.classList.add("show");
-  if (savedUrl.includes("partnerLinkCode=")) {
-    draftChip.textContent = "Saved partner draft found — continue from the same agency link.";
+// If agency is signed in, point CTAs to dashboard and skip draft logic
+const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) {
+    navCta.textContent  = "Dashboard";
+    navCta.href         = "/dashboard";
+    heroCta.textContent = "Go to dashboard";
+    heroCta.href        = "/dashboard";
+    if (footerCta) { footerCta.textContent = "Dashboard"; footerCta.href = "/dashboard"; }
+    return;
   }
-  heroCta.textContent  = "Continue draft";
-  heroCta.href         = savedUrl;
-  navCta.textContent   = "Continue draft";
-  navCta.href          = savedUrl;
-  footerCta.textContent = "Continue draft";
-  footerCta.href        = savedUrl;
-}
+
+  const savedDraft = getSavedDraft();
+  const hasDraft   = Boolean(savedDraft && savedDraft.data && Object.keys(savedDraft.data).length);
+  const savedUrl   = (savedDraft && typeof savedDraft.resumeUrl === "string"
+    && savedDraft.resumeUrl.startsWith("/resume"))
+    ? savedDraft.resumeUrl : "/resume";
+
+  if (hasDraft) {
+    draftChip.classList.add("show");
+    if (savedUrl.includes("partnerLinkCode=")) {
+      draftChip.textContent = "Saved partner draft found — continue from the same agency link.";
+    }
+    heroCta.textContent   = "Continue draft";
+    heroCta.href          = savedUrl;
+    navCta.textContent    = "Continue draft";
+    navCta.href           = savedUrl;
+    footerCta.textContent = "Continue draft";
+    footerCta.href        = savedUrl;
+  }
+});
 </script>
 </body>
 </html>
