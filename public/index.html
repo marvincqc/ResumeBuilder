@@ -2562,7 +2562,11 @@ async function submitResume() {
       lastSubmitResult = json;
       showSuccess(json);
     } else {
-      showSubmitErr(json.error || "Submission failed. Please try again.");
+      if (json.code === "plan_limit_submissions") {
+        showSubmitErr("This agency isn't accepting new applications this month. Please reach out to them directly or try again next month.");
+      } else {
+        showSubmitErr(json.error || "Submission failed. Please try again.");
+      }
       if (btn) btn.disabled = false;
     }
   } catch(err) {

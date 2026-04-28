@@ -244,6 +244,51 @@ async function requireAuth(req, res, next) {
 
 const SUPER_ADMIN = "marvincqc@gmail.com";
 
+// ─── Plan limits ──────────────────────────────────────────────────────────────
+const PLAN_LIMITS = {
+  free:  { maxLinks: 3,        maxSubmissionsPerMonth: 50 },
+  pro:   { maxLinks: 25,       maxSubmissionsPerMonth: 500 },
+  scale: { maxLinks: Infinity, maxSubmissionsPerMonth: Infinity },
+};
+const VALID_PLANS = Object.keys(PLAN_LIMITS);
+const planOf = (agency) => PLAN_LIMITS[agency?.plan] || PLAN_LIMITS.free;
+
+async function countActiveLinks(agencyId) {
+  const { count } = await supabase
+    .from("partner_links")
+    .select("*", { count: "exact", head: true })
+    .eq("agency_id", agencyId)
+    .eq("active", true);
+  return count || 0;
+}
+
+async function countSubmissionsThisMonth(agencyId) {
+  const start = new Date();
+  start.setUTCDate(1);
+  start.setUTCHours(0, 0, 0, 0);
+  const { count } = await supabase
+    .from("submissions")
+    .select("*", { count: "exact", head: true })
+    .eq("agency_id", agencyId)
+    .gte("created_at", start.toISOString());
+  return count || 0;
+}
+
+async function loadAgencyUsage(agency) {
+  const limits = planOf(agency);
+  const [activeLinks, submissionsThisMonth] = await Promise.all([
+    countActiveLinks(agency.id),
+    countSubmissionsThisMonth(agency.id),
+  ]);
+  return {
+    plan: agency.plan || "free",
+    activeLinks,
+    activeLinksLimit: limits.maxLinks === Infinity ? null : limits.maxLinks,
+    submissionsThisMonth,
+    submissionsLimit: limits.maxSubmissionsPerMonth === Infinity ? null : limits.maxSubmissionsPerMonth,
+  };
+}
+
 // ─── Authenticated PDF download ───────────────────────────────────────────────
 app.get("/api/pdf/:filename", async (req, res) => {
   const token = (() => {
@@ -334,6 +379,7 @@ function linkErrorPage(title, message) {
 
 // ─── Privacy policy ───────────────────────────────────────────────────────────
 app.get("/privacy", (_req, res) => res.sendFile(path.join(rootDir, "public", "privacy.html")));
+app.get("/pricing", (_req, res) => res.sendFile(path.join(rootDir, "public", "pricing.html")));
 
 // ─── Auth pages ───────────────────────────────────────────────────────────────
 app.get("/register",       (_req, res) => res.sendFile(path.join(rootDir, "public", "register.html")));
@@ -390,7 +436,10 @@ app.get("/api/agency/me", requireAuth, async (req, res) => {
     .maybeSingle();
 
   if (error) return res.status(500).json({ ok: false, error: error.message });
-  res.json({ ok: true, agency: data });
+  if (!data) return res.json({ ok: true, agency: null, usage: null });
+
+  const usage = await loadAgencyUsage(data);
+  res.json({ ok: true, agency: { ...data, plan: data.plan || "free" }, usage });
 });
 
 // ─── Partner links ────────────────────────────────────────────────────────────
@@ -419,11 +468,23 @@ app.post("/api/links", requireAuth, async (req, res) => {
 
   const { data: agency } = await supabase
     .from("agencies")
-    .select("id, slug")
+    .select("id, slug, plan")
     .eq("auth_id", req.user.id)
     .maybeSingle();
 
   if (!agency) return res.status(404).json({ ok: false, error: "Agency not found" });
+
+  const limits = planOf(agency);
+  const activeLinks = await countActiveLinks(agency.id);
+  if (activeLinks >= limits.maxLinks) {
+    return res.status(402).json({
+      ok: false,
+      code: "plan_limit_links",
+      plan: agency.plan || "free",
+      limit: limits.maxLinks === Infinity ? null : limits.maxLinks,
+      error: `You've reached your active link limit on the ${agency.plan || "free"} plan. Upgrade to add more.`,
+    });
+  }
 
   const cleanCode = normalizeAgencyLinkSlug(code);
   const fullSlug = `${agency.slug}-${cleanCode}`;
@@ -448,11 +509,25 @@ app.patch("/api/links/:id", requireAuth, async (req, res) => {
 
   const { data: agency } = await supabase
     .from("agencies")
-    .select("id")
+    .select("id, plan")
     .eq("auth_id", req.user.id)
     .maybeSingle();
 
   if (!agency) return res.status(404).json({ ok: false, error: "Agency not found" });
+
+  if (active) {
+    const limits = planOf(agency);
+    const activeLinks = await countActiveLinks(agency.id);
+    if (activeLinks >= limits.maxLinks) {
+      return res.status(402).json({
+        ok: false,
+        code: "plan_limit_links",
+        plan: agency.plan || "free",
+        limit: limits.maxLinks === Infinity ? null : limits.maxLinks,
+        error: `You've reached your active link limit on the ${agency.plan || "free"} plan. Upgrade to reactivate this link.`,
+      });
+    }
+  }
 
   const { data, error } = await supabase
     .from("partner_links")
@@ -543,6 +618,30 @@ app.post("/submit", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) =
       return res.status(400).json({ ok: false, error: "No data provided" });
     }
 
+    // Resolve agency early so we can enforce the monthly submission cap
+    // BEFORE spending compute on PDF generation.
+    let resolvedAgency = null;
+    if (data.agency) {
+      const { data: agencyRow } = await supabase
+        .from("agencies")
+        .select("id, plan, name")
+        .eq("slug", normalizeAgencyLinkSlug(data.agency))
+        .maybeSingle();
+      if (agencyRow) resolvedAgency = agencyRow;
+    }
+
+    if (resolvedAgency) {
+      const limits = planOf(resolvedAgency);
+      const used = await countSubmissionsThisMonth(resolvedAgency.id);
+      if (used >= limits.maxSubmissionsPerMonth) {
+        return res.status(402).json({
+          ok: false,
+          code: "plan_limit_submissions",
+          error: "This agency isn't accepting new applications this month. Please reach out to them directly or try again next month.",
+        });
+      }
+    }
+
     const submissionId = buildSubmissionId(data);
     const safeAttachments = Array.isArray(attachments) ? attachments : [];
     const result = await generateAndStorePDF(data, submissionId, safeAttachments);
@@ -556,17 +655,8 @@ app.post("/submit", rateLimit({ windowMs: 60_000, max: 10 }), async (req, res) =
 
     // Save submission record to Supabase
     try {
-      let agencyId = null;
+      let agencyId = resolvedAgency?.id || null;
       let partnerLinkId = null;
-
-      if (data.agency) {
-        const { data: agencyRow } = await supabase
-          .from("agencies")
-          .select("id")
-          .eq("slug", normalizeAgencyLinkSlug(data.agency))
-          .maybeSingle();
-        if (agencyRow) agencyId = agencyRow.id;
-      }
 
       // Validate that the supplied partnerLinkId actually belongs to this agency
       if (data.partnerLinkId && agencyId) {
@@ -629,7 +719,7 @@ app.get("/api/admin/stats", requireAuth, requireAdmin, async (req, res) => {
 app.get("/api/admin/agencies", requireAuth, requireAdmin, async (req, res) => {
   const { data: agencies, error } = await supabase
     .from("agencies")
-    .select("id, name, slug, auth_id, created_at")
+    .select("id, name, slug, auth_id, plan, created_at")
     .order("created_at", { ascending: false });
   if (error) return res.status(500).json({ ok: false, error: error.message });
 
@@ -642,12 +732,54 @@ app.get("/api/admin/agencies", requireAuth, requireAdmin, async (req, res) => {
   const countMap = {};
   (counts || []).forEach(r => { countMap[r.agency_id] = (countMap[r.agency_id] || 0) + 1; });
 
-  const result = agencies.map(a => ({
-    ...a,
-    email: userMap[a.auth_id] || null,
-    submission_count: countMap[a.id] || 0,
-  }));
+  // Active link counts and submissions-this-month for usage badges
+  const { data: activeLinks } = await supabase
+    .from("partner_links")
+    .select("agency_id")
+    .eq("active", true);
+  const activeLinkMap = {};
+  (activeLinks || []).forEach(r => { activeLinkMap[r.agency_id] = (activeLinkMap[r.agency_id] || 0) + 1; });
+
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+  const { data: monthSubs } = await supabase
+    .from("submissions")
+    .select("agency_id")
+    .gte("created_at", monthStart.toISOString());
+  const monthSubMap = {};
+  (monthSubs || []).forEach(r => { monthSubMap[r.agency_id] = (monthSubMap[r.agency_id] || 0) + 1; });
+
+  const result = agencies.map(a => {
+    const limits = planOf(a);
+    return {
+      ...a,
+      plan: a.plan || "free",
+      email: userMap[a.auth_id] || null,
+      submission_count: countMap[a.id] || 0,
+      active_links: activeLinkMap[a.id] || 0,
+      active_links_limit: limits.maxLinks === Infinity ? null : limits.maxLinks,
+      submissions_this_month: monthSubMap[a.id] || 0,
+      submissions_limit: limits.maxSubmissionsPerMonth === Infinity ? null : limits.maxSubmissionsPerMonth,
+    };
+  });
   res.json({ ok: true, agencies: result });
+});
+
+app.patch("/api/admin/agencies/:id/plan", requireAuth, requireAdmin, async (req, res) => {
+  const { plan } = req.body || {};
+  if (!VALID_PLANS.includes(plan)) {
+    return res.status(400).json({ ok: false, error: `plan must be one of ${VALID_PLANS.join(", ")}` });
+  }
+  const { data, error } = await supabase
+    .from("agencies")
+    .update({ plan })
+    .eq("id", req.params.id)
+    .select()
+    .maybeSingle();
+  if (error) return res.status(500).json({ ok: false, error: error.message });
+  if (!data) return res.status(404).json({ ok: false, error: "Agency not found" });
+  res.json({ ok: true, agency: data });
 });
 
 app.delete("/api/admin/agencies/:id", requireAuth, requireAdmin, async (req, res) => {

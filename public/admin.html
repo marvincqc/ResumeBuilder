@@ -72,6 +72,17 @@ tr:hover td { background: #fafaf9; }
 .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 .tag.active { background: #f0fff4; color: #276749; }
 
+.plan-select {
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line);
+  background: #fff; color: var(--ink); cursor: pointer; min-width: 78px;
+}
+.plan-select.plan-pro { background: #fff0eb; border-color: rgba(200,94,56,0.35); color: var(--brand); }
+.plan-select.plan-scale { background: #0d1b27; border-color: #0d1b27; color: #fff; }
+
+.usage-badge { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.usage-badge .at-cap { color: var(--danger); font-weight: 700; }
+
 .load-more { display: flex; justify-content: center; padding: 16px; border-top: 1px solid var(--line); }
 .btn-more { font-size: 13px; font-weight: 700; color: var(--brand); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 20px; cursor: pointer; }
 .btn-more:hover { border-color: var(--brand); }
@@ -245,24 +256,69 @@ tr:hover td { background: #fafaf9; }
 
     agencyNameMap = Object.fromEntries(json.agencies.map(a => [a.id, a.name]));
 
-    const rows = json.agencies.map(a => `
+    const rows = json.agencies.map(a => {
+      const plan = a.plan || "free";
+      const linksLimit = a.active_links_limit === null ? "∞" : a.active_links_limit;
+      const subsLimit  = a.submissions_limit === null ? "∞" : a.submissions_limit;
+      const linksAtCap = a.active_links_limit !== null && a.active_links >= a.active_links_limit;
+      const subsAtCap  = a.submissions_limit  !== null && a.submissions_this_month >= a.submissions_limit;
+      return `
       <tr id="agency-row-${esc(a.id)}">
         <td><strong>${esc(a.name)}</strong></td>
         <td style="color:var(--muted)">${esc(a.slug)}</td>
         <td>${esc(a.email || "—")}</td>
+        <td>
+          <select class="plan-select plan-${esc(plan)}" data-id="${esc(a.id)}" onchange="changePlan(this)">
+            <option value="free"${plan==="free"?" selected":""}>Free</option>
+            <option value="pro"${plan==="pro"?" selected":""}>Pro</option>
+            <option value="scale"${plan==="scale"?" selected":""}>Scale</option>
+          </select>
+        </td>
+        <td>
+          <div class="usage-badge">
+            <span class="${linksAtCap?"at-cap":""}">${a.active_links}/${linksLimit} links</span>
+            ·
+            <span class="${subsAtCap?"at-cap":""}">${a.submissions_this_month}/${subsLimit} subs</span>
+          </div>
+        </td>
         <td>${a.submission_count}</td>
         <td>${fmt(a.created_at)}</td>
         <td><button class="btn-del" onclick="deleteAgency('${esc(a.id)}', '${esc(a.name)}')">Delete</button></td>
-      </tr>`).join("");
+      </tr>`;
+    }).join("");
 
     el.innerHTML = `
       <table>
         <thead><tr>
-          <th>Name</th><th>Slug</th><th>Email</th><th>Submissions</th><th>Created</th><th></th>
+          <th>Name</th><th>Slug</th><th>Email</th><th>Plan</th><th>Usage</th><th>Total subs</th><th>Created</th><th></th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
   }
+
+  window.changePlan = async function(selectEl) {
+    const id = selectEl.dataset.id;
+    const plan = selectEl.value;
+    const prev = selectEl.dataset.prev || "free";
+    selectEl.disabled = true;
+    const res = await fetch(`/api/admin/agencies/${encodeURIComponent(id)}/plan`, {
+      method: "PATCH",
+      headers: { ...auth(), "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    const json = await res.json();
+    selectEl.disabled = false;
+    if (!json.ok) {
+      alert("Failed to update plan: " + (json.error || res.status));
+      selectEl.value = prev;
+      return;
+    }
+    selectEl.dataset.prev = plan;
+    selectEl.classList.remove("plan-free", "plan-pro", "plan-scale");
+    selectEl.classList.add("plan-" + plan);
+    // Refresh row to update usage limits column
+    loadAgencies();
+  };
 
   window.deleteAgency = async function(id, name) {
     if (!confirm(`Delete agency "${name}" and all their data? This cannot be undone.`)) return;
